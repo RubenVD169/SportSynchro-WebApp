@@ -1,12 +1,18 @@
-# Demo CI/CD Pipeline
+trigger:
+- main
+
 pool:
   vmImage: ubuntu-latest
 
 steps:
-# Build
-- task: DotNetCoreCLI@2
-  displayName: Build Projects
+- task: UseDotNet@2
+  displayName: 'Install .NET 10 SDK'
   inputs:
-    command: build
-    projects: '**/*.csproj'
-    arguments: '--configuration $(buildConfiguration)'
+    packageType: 'sdk'
+    version: '10.0.101'
+
+- script: dotnet restore SportSynchro.sln
+  displayName: 'NuGet restore'
+
+- script: dotnet build SportSynchro.sln --configuration Release --no-restore
+  displayName: 'Build solution'
