@@ -247,3 +247,10 @@ dist/
 *.local
 *.env
 .env.*
+
+# IdentityServer signing keys
+SportSynchro/src/Backend/SportSynchro.IdentityServer/keys/
+
+# Environment-specific settings
+appsettings.Development.json
+SportSynchro.IdentityServer/appsettings.Development.json
