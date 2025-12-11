@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportSynchro.Infrastructure
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportSynchro.Api", "src\Backend\SportSynchro.Api\SportSynchro.Api.csproj", "{4573DDC5-8C3B-40A2-9044-8936F1A2282C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SportSynchro.IdentityServer", "src\Backend\SportSynchro.IdentityServer\SportSynchro.IdentityServer.csproj", "{EF154B62-2FA1-4504-9308-634027762AFE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -73,6 +75,18 @@ Global
 		{4573DDC5-8C3B-40A2-9044-8936F1A2282C}.Release|x64.Build.0 = Release|Any CPU
 		{4573DDC5-8C3B-40A2-9044-8936F1A2282C}.Release|x86.ActiveCfg = Release|Any CPU
 		{4573DDC5-8C3B-40A2-9044-8936F1A2282C}.Release|x86.Build.0 = Release|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Debug|x64.Build.0 = Debug|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Debug|x86.Build.0 = Debug|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Release|x64.ActiveCfg = Release|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Release|x64.Build.0 = Release|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Release|x86.ActiveCfg = Release|Any CPU
+		{EF154B62-2FA1-4504-9308-634027762AFE}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -83,5 +97,6 @@ Global
 		{CE55C145-2E78-4875-9D9B-DF0A81714CBE} = {FE360695-3F2B-1049-3887-35FBB5135923}
 		{85B8B69D-4B3D-4C25-9754-E92E97E09F5F} = {FE360695-3F2B-1049-3887-35FBB5135923}
 		{4573DDC5-8C3B-40A2-9044-8936F1A2282C} = {FE360695-3F2B-1049-3887-35FBB5135923}
+		{EF154B62-2FA1-4504-9308-634027762AFE} = {FE360695-3F2B-1049-3887-35FBB5135923}
 	EndGlobalSection
 EndGlobal
