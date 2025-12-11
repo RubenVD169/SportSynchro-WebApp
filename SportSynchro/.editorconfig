@@ -1,0 +1,16 @@
+root = true
+
+[*.cs]
+
+# EF Core entity warnings uitschakelen
+dotnet_diagnostic.CS8618.severity = none   # Non-nullable uninitialized
+dotnet_diagnostic.CS0649.severity = none   # Field is never assigned
+dotnet_diagnostic.CS0169.severity = none   # Field is never used
+
+# EF private constructor warnings
+dotnet_diagnostic.CA1012.severity = none   # Abstract types must have ctors
+dotnet_diagnostic.CA1822.severity = none   # Mark members static
+
+# Pas waarschuwingen voor backing fields aan (we gebruiken private fields in aggregates)
+dotnet_diagnostic.CA1051.severity = none   # Do not declare visible instance fields
+dotnet_diagnostic.CA2211.severity = none   # Non-constant fields should not be visible
