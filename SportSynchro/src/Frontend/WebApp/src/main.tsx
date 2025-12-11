@@ -3,9 +3,12 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
+import { SportsProvider } from './contexts/SportsContext';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <RouterProvider router={router} />
+    <SportsProvider>
+      <RouterProvider router={router} />
+    </SportsProvider>
   </StrictMode>,
 )

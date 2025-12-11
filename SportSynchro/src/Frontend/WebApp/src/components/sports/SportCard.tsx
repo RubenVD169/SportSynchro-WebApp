@@ -1,22 +1,28 @@
-import type { IconType } from "react-icons";
+import { useNavigate } from "react-router-dom";
+import { sportIcons } from "./icons";
 
 interface SportCardProps {
-  name: string;
-  Icon: IconType;
+  sport: {
+    id: number;
+    name: string;
+  };
 }
 
-export default function SportCard({ name, Icon }: SportCardProps) {
+export default function SportCard({ sport }: SportCardProps) {
+  const navigate = useNavigate();
+
+  // search icon for sport name
+  const Icon = sportIcons[sport.name] || null;
+
   return (
-    <div className="flex flex-col items-center justify-center p-6 
-                    bg-gray-800 hover:bg-gray-750 rounded-lg 
-                    shadow-md hover:shadow-lg 
-                    transition-all cursor-pointer">
-
-      <Icon className="text-4xl mb-3 text-blue-400" />
-
-      <div className="text-lg font-medium text-gray-200 text-center">
-        {name}
-      </div>
+    <div
+      onClick={() => navigate(`/sports/${sport.id}`)}
+      className="p-4 bg-gray-800 hover:bg-gray-700 cursor-pointer 
+                 rounded-lg shadow text-center flex flex-col items-center 
+                 transition"
+    >
+      {Icon && <Icon className="text-4xl text-blue-500 mb-3" />}
+      <h2 className="text-lg font-semibold text-white">{sport.name}</h2>
     </div>
   );
 }
