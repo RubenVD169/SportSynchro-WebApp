@@ -4,11 +4,19 @@ import './index.css'
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 import { SportsProvider } from './contexts/SportsContext';
+import { AuthProvider } from "react-oidc-context";
+import { authSettings } from "./config/authconfig";
+
+const onSigninCallback = (): void => {
+  window.history.replaceState({}, document.title, window.location.pathname);
+};
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <AuthProvider {...authSettings} onSigninCallback={onSigninCallback}>
     <SportsProvider>
       <RouterProvider router={router} />
     </SportsProvider>
+    </AuthProvider>
   </StrictMode>,
 )

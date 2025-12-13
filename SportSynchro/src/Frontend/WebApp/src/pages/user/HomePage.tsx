@@ -3,8 +3,10 @@ import SportCard from "../../components/sports/SportCard";
 
 export default function HomePage() {
   const { sports, loadingSports } = useSports();
-
-  if (loadingSports) return <p>Loading sports...</p>;
+  
+  if (loadingSports) {
+    return <p>Loading sports...</p>;
+  }
 
   return (
     <div>
@@ -13,9 +15,10 @@ export default function HomePage() {
       </h1>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {sports.map((sport) => (
-          <SportCard key={sport.id} sport={sport} />
-        ))}
+        {Array.isArray(sports) &&
+          sports.map((sport) => (
+            <SportCard key={sport.id} sport={sport} />
+          ))}
       </div>
     </div>
   );

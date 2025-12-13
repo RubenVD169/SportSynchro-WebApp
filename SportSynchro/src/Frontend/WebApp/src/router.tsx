@@ -1,29 +1,28 @@
 import { createBrowserRouter } from "react-router-dom";
-import UserLayout from "./layouts/UserLayout";
-import HomePage from "./pages/user/HomePage.tsx";
-import AdminLayout from "./layouts/AdminLayout.tsx";
-import AdminDashboardPage from "./pages/admin/AdminDashboardPage.tsx";
-import SportsVisibilityPage from "./pages/admin/SportsVisibilityPage.tsx";
-import LeagueVisibilityPage from "./pages/admin/LeagueVisibilityPage.tsx";
-import AdminPreviewPage from "./pages/admin/AdminPreviewPage.tsx";
-import SportDetailsPage from "./pages/user/SportDetailsPage.tsx";
+import RequireUser from "./auth/RequireUser";
+import RequireAdmin from "./auth/RequireAdmin";
+import HomePage from "./pages/user/HomePage";
+import SportDetailsPage from "./pages/user/SportDetailsPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import SportsVisibilityPage from "./pages/admin/SportsVisibilityPage";
+import LeagueVisibilityPage from "./pages/admin/LeagueVisibilityPage";
+import AdminPreviewPage from "./pages/admin/AdminPreviewPage";
+import AuthCallback from "./auth/AuthCallBack";
 
 export const router = createBrowserRouter([
   {
-    element: <UserLayout />,
+    path: "/auth/callback",
+    element: <AuthCallback />,
+  },
+  {
+    element: <RequireUser />,
     children: [
-      {
-        path: "/",
-        element: <HomePage />,
-      },
-      {
-        path: "/sports/:id",
-        element: <SportDetailsPage />,
-      }
+      { path: "/", element: <HomePage /> },
+      { path: "/sports/:id", element: <SportDetailsPage /> },
     ],
   },
   {
-    element: <AdminLayout />,
+    element: <RequireAdmin />,
     children: [
       { path: "/admin", element: <AdminDashboardPage /> },
       { path: "/admin/sports", element: <SportsVisibilityPage /> },

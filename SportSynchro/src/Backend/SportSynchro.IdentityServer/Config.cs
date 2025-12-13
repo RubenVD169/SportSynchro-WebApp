@@ -1,4 +1,6 @@
-﻿using Duende.IdentityServer.Models;
+﻿using Duende.IdentityServer;
+using Duende.IdentityServer.Models;
+using IdentityModel;
 
 namespace SportSynchro.IdentityServer;
 
@@ -9,6 +11,11 @@ public static class Config
         {
             new IdentityResources.OpenId(),
             new IdentityResources.Profile(),
+            new IdentityResource(
+                name: "roles",
+                displayName: "User roles",
+                userClaims: new[] { JwtClaimTypes.Role }
+            )
         };
 
     public static IEnumerable<ApiScope> ApiScopes =>
@@ -21,7 +28,7 @@ public static class Config
     public static IEnumerable<Client> Clients =>
         new Client[]
         {
-            // m2m client credentials flow client
+            // m2m client credentials flow postman
             new Client
             {
                 ClientId = "m2m.postman",
@@ -32,5 +39,25 @@ public static class Config
 
                 AllowedScopes = { "sportsynchro.api.read", "sportsynchro.api.write" }
             },
+            // frontend client using code flow 
+            new Client {
+                ClientId = "webapp-client",
+                RequireClientSecret = false,
+                AllowedGrantTypes = GrantTypes.Code,
+                RequirePkce = true,
+                RequireConsent = false,
+                AlwaysIncludeUserClaimsInIdToken = true,
+                AllowedScopes = {
+                    IdentityServerConstants.StandardScopes.OpenId,
+                    IdentityServerConstants.StandardScopes.Profile,
+                    "roles",
+                    "sportsynchro.api.read",
+                    "sportsynchro.api.write"
+                },
+                RedirectUris = { "http://localhost:5173/auth/callback" },
+                PostLogoutRedirectUris = { "http://localhost:5173/" },
+                AllowedCorsOrigins = ["http://localhost:5173"],
+                AllowAccessTokensViaBrowser = true
+            }
         };
 }
