@@ -9,19 +9,19 @@ public sealed class Subscription
 
     private Subscription() { } // EF Core only
 
-    public Subscription(int userId, SubscriptionType type)
+    public Subscription(string aspUserId, SubscriptionType type)
     {
-        if (userId <= 0)
-            throw new SubscriptionException("User ID must be positive.");
+        if (string.IsNullOrWhiteSpace(aspUserId))
+            throw new SubscriptionException("User ID must be provided.");
 
         _type = type ?? throw new SubscriptionException("Subscription type is required.");
 
-        UserId = userId;
+        AspUserId = aspUserId;
         CreatedAtUtc = DateTime.UtcNow;
     }
 
     public int Id { get; private set; }
-    public int UserId { get; private set; }
+    public string AspUserId { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
     public SubscriptionType Type => _type;
 

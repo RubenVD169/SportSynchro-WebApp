@@ -6,21 +6,21 @@ public sealed class UserFavorite
 {
     private UserFavorite() { } // EF Core only
 
-    public UserFavorite(int userId, int teamId)
+    public UserFavorite(string aspUserId, int teamId)
     {
-        if (userId <= 0)
-            throw new UserFavoriteException("User ID must be positive.");
+        if (string.IsNullOrWhiteSpace(aspUserId))
+            throw new UserFavoriteException("AspUserId must be provided.");
 
         if (teamId <= 0)
-            throw new UserFavoriteException("Team ID must be positive.");
+            throw new UserFavoriteException("TeamId must be positive.");
 
-        UserId = userId;
+        AspUserId = aspUserId;
         TeamId = teamId;
         CreatedAtUtc = DateTime.UtcNow;
     }
 
     public int Id { get; private set; }
-    public int UserId { get; private set; }
+    public string AspUserId { get; private set; }
     public int TeamId { get; private set; }
     public DateTime CreatedAtUtc { get; private init; }
 }

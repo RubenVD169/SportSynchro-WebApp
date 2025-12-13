@@ -12,11 +12,13 @@ public sealed class SubscriptionConfiguration : IEntityTypeConfiguration<Subscri
 
         builder.HasKey(s => s.Id);
 
-        builder.Property(s => s.UserId)
+        builder.Property(s => s.AspUserId)
                .IsRequired();
 
         builder.Property(s => s.CreatedAtUtc)
-               .IsRequired();
+                .IsRequired()
+                .HasDefaultValueSql("SYSUTCDATETIME()");
+
 
         builder.ComplexProperty(s => s.Type, type =>
         {
@@ -27,7 +29,7 @@ public sealed class SubscriptionConfiguration : IEntityTypeConfiguration<Subscri
         });
 
         // Ensure 1 active lifetime subscription per user
-        builder.HasIndex(s => s.UserId)
+        builder.HasIndex(s => s.AspUserId)
                .IsUnique();
     }
 }
