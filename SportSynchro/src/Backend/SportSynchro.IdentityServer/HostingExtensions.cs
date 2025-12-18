@@ -22,9 +22,26 @@ internal static class HostingExtensions
             options => options.MigrationsAssembly(
               typeof(Program).Assembly.GetName().Name)));
 
-        builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+        builder.Services.AddIdentity<ApplicationUser, IdentityRole>
+            (options =>
+                {
+                     options.User.RequireUniqueEmail = true;
+                })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
+
+        builder.Services.AddCors(options =>
+                {
+                    options.AddPolicy("AllowFrontend", policy =>
+                    {
+                        policy
+                            .WithOrigins("http://localhost:5173")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    });
+                });
+
+        builder.Services.AddControllers();
 
         builder.Services
             .AddIdentityServer(options =>
@@ -37,12 +54,15 @@ internal static class HostingExtensions
                 // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
                 options.EmitStaticAudienceClaim = true;
             })
+            // in-memory stores, keys, clients and scopes
             // .AddInMemoryIdentityResources(Config.IdentityResources)
             // .AddInMemoryApiScopes(Config.ApiScopes)
             // .AddInMemoryClients(Config.Clients)
             .AddConfigurationStore()
-            .AddAspNetIdentity<ApplicationUser>();
-        
+            .AddAspNetIdentity<ApplicationUser>()
+            .AddProfileService<ProfileService>();
+
+
         builder.Services.AddAuthentication()
             .AddGoogle(options =>
             {
@@ -66,12 +86,14 @@ internal static class HostingExtensions
         {
             app.UseDeveloperExceptionPage();
         }
+        app.UseCors("AllowFrontend");
 
         app.UseStaticFiles();
         app.UseRouting();
         app.UseIdentityServer();
         app.UseAuthorization();
-        
+        app.MapControllers();
+
         app.MapRazorPages()
             .RequireAuthorization();
 

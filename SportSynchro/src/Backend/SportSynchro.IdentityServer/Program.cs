@@ -10,7 +10,7 @@ Log.Information("Starting up");
 try
 {
     var builder = WebApplication.CreateBuilder(args);
-
+    
     builder.Host.UseSerilog((ctx, lc) => lc
         .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss} {Level}] {SourceContext}{NewLine}{Message:lj}{NewLine}{Exception}{NewLine}")
         .Enrich.FromLogContext()
@@ -19,6 +19,8 @@ try
     var app = builder
         .ConfigureServices()
         .ConfigurePipeline();
+    
+    app.UseIdentityServer();
 
     // this seeding is only for the template to bootstrap the DB and users.
     // in production you will likely want a different approach.

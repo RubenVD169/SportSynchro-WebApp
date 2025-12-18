@@ -1,27 +1,22 @@
 @page
 @model SportSynchro.IdentityServer.Pages.Logout.LoggedOut
 
-<div class="logged-out-page">
-    <h1>
-        Logout
-        <small>You are now logged out</small>
-    </h1>
+<div class="logout-page">
+    <div class="logout-card">
+        <h1>Signed out</h1>
+        <p class="subtitle">You have been successfully logged out.</p>
 
-    @if (Model.View.PostLogoutRedirectUri != null)
-    {
-        <div>
-            Click <a class="PostLogoutRedirectUri" href="@Model.View.PostLogoutRedirectUri">here</a> to return to the
-            <span>@Model.View.ClientName</span> application.
-        </div>
-    }
+        <p class="countdown-text">
+            Redirecting to login in <span id="countdown">3</span>…
+        </p>
 
-    @if (Model.View.SignOutIframeUrl != null)
-    {
-        <iframe width="0" height="0" class="signout" src="@Model.View.SignOutIframeUrl"></iframe>
-    }
+        <p class="manual-link">
+            Or click <a href="http://localhost:5173">here</a> to continue.
+        </p>
+    </div>
 </div>
 
-@section scripts
+@section Scripts
 {
     @if (Model.View.AutomaticRedirectAfterSignOut)
     {

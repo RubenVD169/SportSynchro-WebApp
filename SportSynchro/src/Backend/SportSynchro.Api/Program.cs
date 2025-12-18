@@ -34,6 +34,17 @@ builder.Services.AddAuthorizationBuilder()
                 "sportsynchro.api.write");
         });
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+        });
+});
+
 WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.

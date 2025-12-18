@@ -1,15 +1,40 @@
 import { createBrowserRouter } from "react-router-dom";
-import UserLayout from "./layouts/UserLayout";
-import HomePage from "./pages/user/HomePage.tsx"; 
+import RequireUser from "./auth/RequireUser";
+import RequireAdmin from "./auth/RequireAdmin";
+import HomePage from "./pages/user/HomePage";
+import SportDetailsPage from "./pages/user/SportDetailsPage";
+import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
+import SportsVisibilityPage from "./pages/admin/SportsVisibilityPage";
+import LeagueVisibilityPage from "./pages/admin/LeagueVisibilityPage";
+import AdminPreviewPage from "./pages/admin/AdminPreviewPage";
+import AuthCallback from "./auth/AuthCallBack";
+import { RegisterPage } from "./pages/auth/RegisterPage";
+import LogoutCallback from "./auth/LogoutCallBack";
 
 export const router = createBrowserRouter([
   {
-    element: <UserLayout />,
+    path: "/auth/callback", element: <AuthCallback />,
+  },
+  {
+    path: "/auth/logout-callback", element: <LogoutCallback />,
+  },
+  {
+    path: "/register", element: <RegisterPage />,
+  },
+  {
+    element: <RequireUser />,
     children: [
-      {
-        path: "/",
-        element: <HomePage />,
-      },
+      { path: "/", element: <HomePage /> },
+      { path: "/sports/:id", element: <SportDetailsPage /> },
+    ],
+  },
+  {
+    element: <RequireAdmin />,
+    children: [
+      { path: "/admin", element: <AdminDashboardPage /> },
+      { path: "/admin/sports", element: <SportsVisibilityPage /> },
+      { path: "/admin/sports/:sportId/leagues", element: <LeagueVisibilityPage /> },
+      { path: "/admin/preview", element: <AdminPreviewPage /> },
     ],
   },
 ]);

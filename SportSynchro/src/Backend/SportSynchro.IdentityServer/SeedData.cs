@@ -20,6 +20,40 @@ public class SeedData
             context.Database.Migrate();
 
             var userMgr = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+            var roleMgr = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
+            // Ensure admin role exists
+            if (!roleMgr.RoleExistsAsync("admin").Result)
+            {
+                var roleResult = roleMgr.CreateAsync(new IdentityRole("admin")).Result;
+                if (!roleResult.Succeeded)
+                {
+                    throw new Exception(roleResult.Errors.First().Description);
+                }
+
+                Log.Debug("admin role created");
+            }
+            else
+            {
+                Log.Debug("admin role already exists");
+            }
+
+            // Ensure user role exists
+            if (!roleMgr.RoleExistsAsync("user").Result)
+            {
+                var roleResult = roleMgr.CreateAsync(new IdentityRole("user")).Result;
+                if (!roleResult.Succeeded)
+                {
+                    throw new Exception(roleResult.Errors.First().Description);
+                }
+
+                Log.Debug("user role created");
+            }
+            else
+            {
+                Log.Debug("user role already exists");
+            }
+
             var alice = userMgr.FindByNameAsync("alice").Result;
             if (alice == null)
             {
@@ -50,6 +84,21 @@ public class SeedData
             else
             {
                 Log.Debug("alice already exists");
+            }
+
+            if (!userMgr.IsInRoleAsync(alice, "admin").Result)
+            {
+                var addRoleResult = userMgr.AddToRoleAsync(alice, "admin").Result;
+                if (!addRoleResult.Succeeded)
+                {
+                    throw new Exception(addRoleResult.Errors.First().Description);
+                }
+
+                Log.Debug("alice added to admin role");
+            }
+            else
+            {
+                Log.Debug("alice already in admin role");
             }
 
             var bob = userMgr.FindByNameAsync("bob").Result;
@@ -84,6 +133,22 @@ public class SeedData
             {
                 Log.Debug("bob already exists");
             }
+
+            if (!userMgr.IsInRoleAsync(bob, "user").Result)
+            {
+                var addRoleResult = userMgr.AddToRoleAsync(bob, "user").Result;
+                if (!addRoleResult.Succeeded)
+                {
+                    throw new Exception(addRoleResult.Errors.First().Description);
+                }
+
+                Log.Debug("bob added to user role");
+            }
+            else
+            {
+                Log.Debug("bob already in user role");
+            }
+
         }
 
         using (var scope = app.Services
