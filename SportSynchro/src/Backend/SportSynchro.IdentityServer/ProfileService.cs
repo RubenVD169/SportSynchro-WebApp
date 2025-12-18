@@ -25,16 +25,19 @@ public class ProfileService : IProfileService
         var userId = context.Subject.GetSubjectId();
         var user = await _userManager.FindByIdAsync(userId);
 
-        var principal = await _claimsFactory.CreateAsync(user);
-        var claims = principal.Claims.ToList();
+        if (user != null)
+        {
+            var principal = await _claimsFactory.CreateAsync(user);
+            var claims = principal.Claims.ToList();
 
 
-        var roles = await _userManager.GetRolesAsync(user);
-        claims.AddRange(roles.Select(r => new Claim(JwtClaimTypes.Role, r)));
+            var roles = await _userManager.GetRolesAsync(user);
+            claims.AddRange(roles.Select(r => new Claim(JwtClaimTypes.Role, r)));
 
 
-        claims = claims.Where(c => context.RequestedClaimTypes.Contains(c.Type)).ToList();
-        context.IssuedClaims = claims;
+            claims = claims.Where(c => context.RequestedClaimTypes.Contains(c.Type)).ToList();
+            context.IssuedClaims = claims;
+        }
     }
 
     public async Task IsActiveAsync(IsActiveContext context)
