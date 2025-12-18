@@ -1,4 +1,6 @@
 import { NavLink } from "react-router-dom";
+import { LogoutNavLink } from "./LogoutNavLink";
+
 
 export default function AdminNavbar() {
     return (
@@ -38,17 +40,7 @@ export default function AdminNavbar() {
                 >
                     Preview
                 </NavLink>
-                <NavLink
-                    to="/logout"
-                    className={({ isActive }) =>
-                        `uppercase tracking-wide transition-colors ${isActive
-                            ? "text-blue-400 font-semibold"
-                            : "hover:text-blue-300 text-gray-300"
-                        }`
-                    }
-                >
-                    Logout
-                </NavLink>
+                <LogoutNavLink />
             </nav>
         </header>
     );

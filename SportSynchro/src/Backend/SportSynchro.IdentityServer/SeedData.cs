@@ -38,6 +38,22 @@ public class SeedData
                 Log.Debug("admin role already exists");
             }
 
+            // Ensure user role exists
+            if (!roleMgr.RoleExistsAsync("user").Result)
+            {
+                var roleResult = roleMgr.CreateAsync(new IdentityRole("user")).Result;
+                if (!roleResult.Succeeded)
+                {
+                    throw new Exception(roleResult.Errors.First().Description);
+                }
+
+                Log.Debug("user role created");
+            }
+            else
+            {
+                Log.Debug("user role already exists");
+            }
+
             var alice = userMgr.FindByNameAsync("alice").Result;
             if (alice == null)
             {
@@ -117,6 +133,22 @@ public class SeedData
             {
                 Log.Debug("bob already exists");
             }
+
+            if (!userMgr.IsInRoleAsync(bob, "user").Result)
+            {
+                var addRoleResult = userMgr.AddToRoleAsync(bob, "user").Result;
+                if (!addRoleResult.Succeeded)
+                {
+                    throw new Exception(addRoleResult.Errors.First().Description);
+                }
+
+                Log.Debug("bob added to user role");
+            }
+            else
+            {
+                Log.Debug("bob already in user role");
+            }
+
         }
 
         using (var scope = app.Services

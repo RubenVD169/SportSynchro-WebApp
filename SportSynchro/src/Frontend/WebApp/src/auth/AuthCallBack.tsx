@@ -2,6 +2,7 @@ import { useAuth } from "react-oidc-context";
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { hasRole } from "./hasRole";
+import { FullscreenLoader } from "../components/ui/FullscreenLoader";
 
 export default function AuthCallback() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -22,5 +23,5 @@ export default function AuthCallback() {
     }
   }, [isLoading, isAuthenticated, user, navigate]);
 
-  return <div>Signing you in…</div>;
+  return <FullscreenLoader text="Signing you in…" />;
 }

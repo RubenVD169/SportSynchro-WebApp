@@ -8,11 +8,18 @@ import SportsVisibilityPage from "./pages/admin/SportsVisibilityPage";
 import LeagueVisibilityPage from "./pages/admin/LeagueVisibilityPage";
 import AdminPreviewPage from "./pages/admin/AdminPreviewPage";
 import AuthCallback from "./auth/AuthCallBack";
+import { RegisterPage } from "./pages/auth/RegisterPage";
+import LogoutCallback from "./auth/LogoutCallBack";
 
 export const router = createBrowserRouter([
   {
-    path: "/auth/callback",
-    element: <AuthCallback />,
+    path: "/auth/callback", element: <AuthCallback />,
+  },
+  {
+    path: "/auth/logout-callback", element: <LogoutCallback />,
+  },
+  {
+    path: "/register", element: <RegisterPage />,
   },
   {
     element: <RequireUser />,

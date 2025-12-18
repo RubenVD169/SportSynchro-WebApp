@@ -1,4 +1,134 @@
-﻿.welcome-page .logo {
+﻿
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.navbar,
+.header {
+  display: none;
+}
+
+.login-page,
+.logout-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 4vh;
+  background: linear-gradient(135deg, #0f172a 0%, #020617 100%);
+}
+
+.login-card,
+.logout-card {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  padding: 2.5rem 2rem;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25);
+}
+
+.login-card h1,
+.logout-card h1 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #020617;
+}
+
+.subtitle {
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+.countdown-text {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+.manual-link {
+  margin-top: 1rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.logout-card a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.logout-card a:hover {
+  text-decoration: underline;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.login-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-options {
+  margin-bottom: 1rem;
+}
+
+.form-control {
+  width: 100%;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  border: 1px solid #cbd5f5;
+  font-size: 0.95rem;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 0.75rem;
+  background: #4f46e5;
+  border: none;
+  color: #ffffff;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #4338ca;
+}
+
+.btn-secondary {
+  display: none;
+  width: 100%;
+  padding: 0.65rem;
+  border-radius: 6px;
+}
+
+.login-footer {
+  margin-top: 1.25rem;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.welcome-page .logo {
   width: 64px;
 }
 
@@ -26,14 +156,17 @@
   margin-top: 20px;
   border-bottom: 1px solid lightgray;
 }
+
 .grants-page .card .card-title {
   font-size: 120%;
   font-weight: bold;
 }
+
 .grants-page .card .card-title img {
   width: 100px;
   height: 100px;
 }
+
 .grants-page .card label {
   font-weight: bold;
 }
