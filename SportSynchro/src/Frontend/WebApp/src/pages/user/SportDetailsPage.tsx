@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import useSports from "../../hooks/useSports";
 import useLeagues from "../../hooks/useLeagues";
 import LeagueCard from "../../components/sports/LeagueCard";
+import { FullscreenLoader } from "../../components/ui/FullscreenLoader";
 
 export default function SportDetailsPage() {
     const { id } = useParams();
@@ -17,7 +18,7 @@ export default function SportDetailsPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [sportId]);
 
-    if (loadingLeagues) return <p className="text-white">Loading leagues…</p>;
+    if (loadingLeagues) return <FullscreenLoader text="Loading Leagues ..." />;
 
     return (
         <div>

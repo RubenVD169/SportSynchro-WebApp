@@ -16,7 +16,7 @@ builder.Services.AddOpenApi();
 builder.Services.AddAuthentication()
     .AddJwtBearer(options =>
     {
-        options.Authority = "https://localhost:5001";
+        options.Authority = builder.Configuration["Authentication:Authority"];
         options.TokenValidationParameters.ValidateAudience = false;
     });
 
@@ -39,7 +39,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173")
+            policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? throw new InvalidOperationException("No allowed origins configured"))
             .AllowAnyHeader()
             .AllowAnyMethod();
         });

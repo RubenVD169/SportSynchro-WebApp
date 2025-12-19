@@ -1,11 +1,12 @@
 import useSports from "../../hooks/useSports";
 import SportCard from "../../components/sports/SportCard";
+import { FullscreenLoader } from "../../components/ui/FullscreenLoader";
 
 export default function HomePage() {
   const { sports, loadingSports } = useSports();
   
   if (loadingSports) {
-    return <p>Loading sports...</p>;
+    return <FullscreenLoader text="Loading Sports ..." />;
   }
 
   return (

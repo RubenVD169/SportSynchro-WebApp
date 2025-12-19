@@ -1,5 +1,4 @@
 @page
-@using System.Text.Encodings.Web
 @model SportSynchro.IdentityServer.Pages.Login.Index
 
 <div class="login-page">
@@ -74,7 +73,7 @@
 
         <div class="login-footer">
             <span>No account yet?</span>
-            <a href="http://localhost:5173/register">
+            <a href="@Model.RegisterUrl">
                 Create one
             </a>
 

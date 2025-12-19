@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Duende.IdentityServer.EntityFramework.DbContexts;
+using SportSynchro.IdentityServer.Options;
 
 namespace SportSynchro.IdentityServer;
 
@@ -13,6 +14,10 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddRazorPages();
+
+        builder.Services.Configure<FrontendOptions>(
+                 builder.Configuration.GetSection("Frontend"));
+
 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -35,7 +40,7 @@ internal static class HostingExtensions
                     options.AddPolicy("AllowFrontend", policy =>
                     {
                         policy
-                            .WithOrigins("http://localhost:5173")
+                            .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? throw new InvalidOperationException("No allowed origins configured"))
                             .AllowAnyHeader()
                             .AllowAnyMethod();
                     });

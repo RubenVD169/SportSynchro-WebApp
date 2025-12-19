@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 
-export default function DashboardCard({ to, title, description }) {
+export default function DashboardCard({ to, title, description }: { to: string; title: string; description: string }) {
   return (
     <Link
       to={to}
