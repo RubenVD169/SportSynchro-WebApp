@@ -12,6 +12,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using SportSynchro.IdentityServer.Options;
+using Microsoft.Extensions.Options;
 
 namespace SportSynchro.IdentityServer.Pages.Login;
 
@@ -25,7 +27,9 @@ public class Index : PageModel
     private readonly IEventService _events;
     private readonly IAuthenticationSchemeProvider _schemeProvider;
     private readonly IIdentityProviderStore _identityProviderStore;
+    private readonly FrontendOptions _frontend;
 
+    public string RegisterUrl => $"{_frontend.BaseUrl}/register";
     public ViewModel View { get; set; } = default!;
         
     [BindProperty]
@@ -37,7 +41,8 @@ public class Index : PageModel
         IIdentityProviderStore identityProviderStore,
         IEventService events,
         UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager)
+        SignInManager<ApplicationUser> signInManager,
+        IOptions<FrontendOptions> frontend)
     {
         _userManager = userManager;
         _signInManager = signInManager;
@@ -45,6 +50,7 @@ public class Index : PageModel
         _schemeProvider = schemeProvider;
         _identityProviderStore = identityProviderStore;
         _events = events;
+        _frontend = frontend.Value;
     }
 
     public async Task<IActionResult> OnGet(string? returnUrl)

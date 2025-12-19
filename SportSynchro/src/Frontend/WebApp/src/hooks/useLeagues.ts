@@ -8,7 +8,6 @@ export default function useLeague(sportId: number | null) {
   useEffect(() => {
     if (!sportId) return;
 
-     
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoadingLeagues(true);
 

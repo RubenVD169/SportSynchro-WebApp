@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE = "/api"; //TODO: move to env variable + config
+const API_BASE = import.meta.env.VITE_API_BASE_URL;
 
 export async function fetchSports() {
   const res = await axios.get(`${API_BASE}/sports`);

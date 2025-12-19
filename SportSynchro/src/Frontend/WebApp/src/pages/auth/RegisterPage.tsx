@@ -1,58 +1,36 @@
-import { useState } from "react";
+import { Formik, Form, Field, ErrorMessage } from "formik";
+import * as Yup from "yup";
 import { useNavigate } from "react-router";
 
+type ApiErrorResponse = {
+    error?: string;
+};
+
+const RegisterSchema = Yup.object({
+    username: Yup.string().required("Username is required."),
+    email: Yup.string()
+        .email("Invalid email address.")
+        .required("Email is required."),
+    password: Yup.string()
+        .min(6, "Password must be at least 6 characters long.")
+        .matches(/[A-Z]/, "Password must contain at least one uppercase letter.")
+        .matches(/[a-z]/, "Password must contain at least one lowercase letter.")
+        .matches(/[0-9]/, "Password must contain at least one number.")
+        .matches(/[^A-Za-z0-9]/, "Password must contain at least one special character.")
+        .required("Password is required."),
+    confirmPassword: Yup.string()
+        .oneOf([Yup.ref("password")], "Passwords do not match.")
+        .required("Confirm password is required."),
+});
+
 export function RegisterPage() {
+    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
     const navigate = useNavigate();
-    const [form, setForm] = useState({
-        username: "",
-        email: "",
-        password: "",
-        confirmPassword: ""
-    });
-
-    const [error, setError] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
-
-    const onSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError(null);
-
-        if (form.password !== form.confirmPassword) {
-            setError("Passwords do not match");
-            return;
-        }
-
-        setLoading(true);
-
-        const response = await fetch(
-            "https://localhost:5001/api/auth/register",
-            {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    username: form.username,
-                    email: form.email,
-                    password: form.password
-                })
-            }
-        );
-
-        if (!response.ok) {
-            const body = await response.json();
-            setError(body.error ?? "Registration failed");
-            setLoading(false);
-            return;
-        }
-
-        navigate("/", { replace: true });
-    };
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-slate-900 to-slate-950 px-4">
             <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-                
+
                 {/* Header */}
                 <div className="text-center mb-6">
                     <h1 className="text-2xl font-bold tracking-tight text-slate-900">
@@ -63,84 +41,144 @@ export function RegisterPage() {
                     </p>
                 </div>
 
-                {/* Form */}
-                <form onSubmit={onSubmit} className="space-y-4">
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">
-                            Username
-                        </label>
-                        <input
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            value={form.username}
-                            onChange={e =>
-                                setForm({ ...form, username: e.target.value })
-                            }
-                            required
-                        />
-                    </div>
+                <Formik
+                    initialValues={{
+                        username: "",
+                        email: "",
+                        password: "",
+                        confirmPassword: "",
+                    }}
+                    validationSchema={RegisterSchema}
+                    onSubmit={async (values, { setSubmitting, setStatus }) => {
+                        setStatus(null);
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            value={form.email}
-                            onChange={e =>
-                                setForm({ ...form, email: e.target.value })
-                            }
-                            required
-                        />
-                    </div>
+                        try {
+                            const response = await fetch(`${apiBaseUrl}/auth/register`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    username: values.username,
+                                    email: values.email,
+                                    password: values.password,
+                                }),
+                            });
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            value={form.password}
-                            onChange={e =>
-                                setForm({ ...form, password: e.target.value })
-                            }
-                            required
-                        />
-                    </div>
+                            if (!response.ok) {
+                                let message = "Registration failed.";
 
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700">
-                            Confirm password
-                        </label>
-                        <input
-                            type="password"
-                            className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                            value={form.confirmPassword}
-                            onChange={e =>
-                                setForm({
-                                    ...form,
-                                    confirmPassword: e.target.value
-                                })
-                            }
-                            required
-                        />
-                    </div>
+                                try {
+                                    const body: ApiErrorResponse = await response.json();
+                                    if (body.error) {
+                                        message = body.error;
+                                    }
+                                } catch {
+                                    // ignore parse errors
+                                }
 
-                    {error && (
-                        <p className="text-sm text-red-600 text-center">
-                            {error}
-                        </p>
+                                throw new Error(message);
+                            }
+
+                            navigate("/", { replace: true });
+                        } catch (err: unknown) {
+                            if (err instanceof Error) {
+                                setStatus(err.message);
+                            } else {
+                                setStatus("An unexpected error occurred.");
+                            }
+                        } finally {
+                            setSubmitting(false);
+                        }
+                    }}
+                >
+                    {({ isSubmitting, status }) => (
+                        <Form className="space-y-4">
+
+                            {/* Username */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700">
+                                    Username
+                                </label>
+                                <Field
+                                    name="username"
+                                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <ErrorMessage
+                                    name="username"
+                                    component="p"
+                                    className="text-sm text-red-600 mt-1"
+                                />
+                            </div>
+
+                            {/* Email */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700">
+                                    Email
+                                </label>
+                                <Field
+                                    name="email"
+                                    type="email"
+                                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <ErrorMessage
+                                    name="email"
+                                    component="p"
+                                    className="text-sm text-red-600 mt-1"
+                                />
+                            </div>
+
+                            {/* Password */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700">
+                                    Password
+                                </label>
+                                <Field
+                                    name="password"
+                                    type="password"
+                                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <ErrorMessage
+                                    name="password"
+                                    component="p"
+                                    className="text-sm text-red-600 mt-1"
+                                />
+                            </div>
+
+                            {/* Confirm password */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-700">
+                                    Confirm password
+                                </label>
+                                <Field
+                                    name="confirmPassword"
+                                    type="password"
+                                    className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                />
+                                <ErrorMessage
+                                    name="confirmPassword"
+                                    component="p"
+                                    className="text-sm text-red-600 mt-1"
+                                />
+                            </div>
+
+                            {/* Server error */}
+                            {status && (
+                                <p className="text-sm text-red-600 text-center">
+                                    {status}
+                                </p>
+                            )}
+
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition disabled:opacity-60"
+                            >
+                                Create account
+                            </button>
+                        </Form>
                     )}
-
-                    <button
-                        type="submit"
-                        disabled={loading}
-                        className="w-full rounded-lg bg-indigo-600 py-2.5 text-sm font-semibold text-white hover:bg-indigo-700 transition disabled:opacity-60"
-                    >
-                        Create account
-                    </button>
-                </form>
+                </Formik>
 
                 {/* Footer */}
                 <div className="mt-6 text-center text-sm text-slate-500">
