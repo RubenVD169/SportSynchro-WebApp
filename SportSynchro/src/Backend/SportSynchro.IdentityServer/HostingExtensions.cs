@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using SportSynchro.IdentityServer.Options;
+using Microsoft.Extensions.Options;
 
 namespace SportSynchro.IdentityServer;
 
@@ -14,18 +15,28 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddRazorPages();
+        builder.Services.Configure<DatabaseOptions>(
+                 builder.Configuration.GetSection("ConnectionStrings"));
 
         builder.Services.Configure<FrontendOptions>(
                  builder.Configuration.GetSection("Frontend"));
 
 
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
+            {
+                DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+                options.UseSqlServer(dbOptions.DefaultConnection);
+            });
 
-        builder.Services.AddDbContext<ConfigurationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-            options => options.MigrationsAssembly(
-              typeof(Program).Assembly.GetName().Name)));
+        builder.Services.AddDbContext<ConfigurationDbContext>((sp, options) =>
+            {
+                DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+                options.UseSqlServer(
+                    dbOptions.DefaultConnection,
+                    sql => sql.MigrationsAssembly(typeof(Program).Assembly.GetName().Name)
+                );
+            });
+
 
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>
             (options =>

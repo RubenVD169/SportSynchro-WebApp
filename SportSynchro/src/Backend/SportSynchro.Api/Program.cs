@@ -1,11 +1,17 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using SportSynchro.Api.Options;
 using SportSynchro.Infrastructure.Persistence;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<SportSynchroDbContext>(options =>
+builder.Services.Configure<DatabaseOptions>(
+    builder.Configuration.GetSection("ConnectionStrings"));
+
+builder.Services.AddDbContext<SportSynchroDbContext>((sp, options) =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+    options.UseSqlServer(dbOptions.ConnectionString);
 });
 
 // Add services to the container.
