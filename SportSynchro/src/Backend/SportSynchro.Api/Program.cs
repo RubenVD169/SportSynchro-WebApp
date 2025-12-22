@@ -6,7 +6,13 @@ using SportSynchro.Infrastructure.Persistence;
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.Configure<DatabaseOptions>(
-    builder.Configuration.GetSection("ConnectionStrings"));
+    builder.Configuration.GetSection(nameof(DatabaseOptions)));
+
+builder.Services.Configure<AuthenticationOptions>(
+    builder.Configuration.GetSection(nameof(AuthenticationOptions)));
+
+builder.Services.Configure<CorsOptions>(
+    builder.Configuration.GetSection(nameof(CorsOptions)));
 
 builder.Services.AddDbContext<SportSynchroDbContext>((sp, options) =>
 {
@@ -19,12 +25,18 @@ builder.Services.AddDbContext<SportSynchroDbContext>((sp, options) =>
 builder.Services.AddOpenApi();
 
 // Add authentication and authorization
+AuthenticationOptions authOptions = builder.Configuration
+    .GetSection(nameof(AuthenticationOptions))
+    .Get<AuthenticationOptions>()!;
+
 builder.Services.AddAuthentication()
     .AddJwtBearer(options =>
     {
-        options.Authority = builder.Configuration["Authentication:Authority"];
+        options.Authority = authOptions.Authority;
         options.TokenValidationParameters.ValidateAudience = false;
     });
+
+
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("ReadPolicy", policy =>
@@ -40,15 +52,19 @@ builder.Services.AddAuthorizationBuilder()
                 "sportsynchro.api.write");
         });
 
+CorsOptions corsOptions = builder.Configuration
+    .GetSection(nameof(CorsOptions))
+    .Get<CorsOptions>()!;
+
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(
-        policy =>
-        {
-            policy.WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? throw new InvalidOperationException("No allowed origins configured"))
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins(corsOptions.AllowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
-        });
+    });
 });
 
 WebApplication app = builder.Build();
@@ -60,6 +76,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 

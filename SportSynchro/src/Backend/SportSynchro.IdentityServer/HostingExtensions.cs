@@ -53,7 +53,21 @@ internal static class HostingExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        builder.Services.AddCors();
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("FrontendCors", policy =>
+                {
+                    CorsOptions corsOptions = builder.Configuration
+                        .GetSection(nameof(CorsOptions))
+                        .Get<CorsOptions>() ?? throw new InvalidOperationException("CorsOptions not configured");
+
+                    policy
+                        .WithOrigins(corsOptions.AllowedOrigins)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
+                });
+        });
 
         builder.Services.AddControllers();
 
@@ -99,22 +113,11 @@ internal static class HostingExtensions
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
-        }
-
-        app.UseCors(policyBuilder =>
-            {
-                CorsOptions corsOptions = app.Services
-                    .GetRequiredService<IOptions<CorsOptions>>()
-                    .Value;
-
-                policyBuilder
-                    .WithOrigins(corsOptions.AllowedOrigins)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod();
-            });
+        }        
 
         app.UseStaticFiles();
         app.UseRouting();
+        app.UseCors("FrontendCors");
         app.UseIdentityServer();
         app.UseAuthorization();
         app.MapControllers();

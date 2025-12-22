@@ -24,7 +24,7 @@ const RegisterSchema = Yup.object({
 });
 
 export function RegisterPage() {
-    const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
+    const authBaseUrl = import.meta.env.VITE_AUTH_AUTHORITY;
     const navigate = useNavigate();
 
     return (
@@ -53,7 +53,7 @@ export function RegisterPage() {
                         setStatus(null);
 
                         try {
-                            const response = await fetch(`${apiBaseUrl}/auth/register`, {
+                            const response = await fetch(`${authBaseUrl}/auth/register`, {
                                 method: "POST",
                                 headers: {
                                     "Content-Type": "application/json",

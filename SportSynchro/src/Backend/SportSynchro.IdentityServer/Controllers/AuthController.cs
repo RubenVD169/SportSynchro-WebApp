@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SportSynchro.IdentityServer.Dtos;
@@ -6,7 +7,8 @@ using SportSynchro.IdentityServer.Models;
 namespace SportSynchro.IdentityServer.Controllers;
 
 [ApiController]
-[Route("api/auth")]
+[Route("auth")]
+[EnableCors("FrontendCors")]
 public sealed class AuthController : ControllerBase
 {
     private readonly UserManager<ApplicationUser> _userManager;
