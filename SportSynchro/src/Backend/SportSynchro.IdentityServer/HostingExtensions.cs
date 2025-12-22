@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using SportSynchro.IdentityServer.Options;
+using Microsoft.Extensions.Options;
 
 namespace SportSynchro.IdentityServer;
 
@@ -15,17 +16,34 @@ internal static class HostingExtensions
     {
         builder.Services.AddRazorPages();
 
+        builder.Services.Configure<DatabaseOptions>(
+            builder.Configuration.GetSection(nameof(DatabaseOptions)));
+
         builder.Services.Configure<FrontendOptions>(
-                 builder.Configuration.GetSection("Frontend"));
+            builder.Configuration.GetSection(nameof(FrontendOptions)));
+
+        builder.Services.Configure<CorsOptions>(
+            builder.Configuration.GetSection(nameof(CorsOptions)));
 
 
-        builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-        builder.Services.AddDbContext<ConfigurationDbContext>(options =>
-            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-            options => options.MigrationsAssembly(
-              typeof(Program).Assembly.GetName().Name)));
+        builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
+            {
+                DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+                options.UseSqlServer(dbOptions.DefaultConnection);
+            });
+
+        builder.Services.AddDbContext<ConfigurationDbContext>((sp, options) =>
+            {
+                DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+
+                options.UseSqlServer(
+                    dbOptions.DefaultConnection,
+                    sql => sql.MigrationsAssembly(typeof(Program).Assembly.GetName().Name)
+                );
+            });
+
+
 
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>
             (options =>
@@ -36,15 +54,20 @@ internal static class HostingExtensions
             .AddDefaultTokenProviders();
 
         builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("FrontendCors", policy =>
                 {
-                    options.AddPolicy("AllowFrontend", policy =>
-                    {
-                        policy
-                            .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? throw new InvalidOperationException("No allowed origins configured"))
-                            .AllowAnyHeader()
-                            .AllowAnyMethod();
-                    });
+                    CorsOptions corsOptions = builder.Configuration
+                        .GetSection(nameof(CorsOptions))
+                        .Get<CorsOptions>() ?? throw new InvalidOperationException("CorsOptions not configured");
+
+                    policy
+                        .WithOrigins(corsOptions.AllowedOrigins)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .AllowCredentials();
                 });
+        });
 
         builder.Services.AddControllers();
 
@@ -90,11 +113,11 @@ internal static class HostingExtensions
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
-        }
-        app.UseCors("AllowFrontend");
+        }        
 
         app.UseStaticFiles();
         app.UseRouting();
+        app.UseCors("FrontendCors");
         app.UseIdentityServer();
         app.UseAuthorization();
         app.MapControllers();

@@ -29,7 +29,7 @@ public class Index : PageModel
     private readonly IIdentityProviderStore _identityProviderStore;
     private readonly FrontendOptions _frontend;
 
-    public string RegisterUrl => $"{_frontend.BaseUrl}/register";
+    public string RegisterUrl => $"{_frontend.ClientUrl}/register";
     public ViewModel View { get; set; } = default!;
         
     [BindProperty]
