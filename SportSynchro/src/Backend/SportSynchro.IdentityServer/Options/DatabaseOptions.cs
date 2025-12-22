@@ -1,6 +1,6 @@
 namespace SportSynchro.IdentityServer.Options;
 
-public class DatabaseOptions
+public sealed class DatabaseOptions
 {
     public string DefaultConnection { get; set; } = string.Empty;
 }

@@ -15,11 +15,16 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Services.AddRazorPages();
+
         builder.Services.Configure<DatabaseOptions>(
-                 builder.Configuration.GetSection("ConnectionStrings"));
+            builder.Configuration.GetSection(nameof(DatabaseOptions)));
 
         builder.Services.Configure<FrontendOptions>(
-                 builder.Configuration.GetSection("Frontend"));
+            builder.Configuration.GetSection(nameof(FrontendOptions)));
+
+        builder.Services.Configure<CorsOptions>(
+            builder.Configuration.GetSection(nameof(CorsOptions)));
+
 
 
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
@@ -31,11 +36,13 @@ internal static class HostingExtensions
         builder.Services.AddDbContext<ConfigurationDbContext>((sp, options) =>
             {
                 DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
+
                 options.UseSqlServer(
                     dbOptions.DefaultConnection,
                     sql => sql.MigrationsAssembly(typeof(Program).Assembly.GetName().Name)
                 );
             });
+
 
 
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>
@@ -46,16 +53,7 @@ internal static class HostingExtensions
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
 
-        builder.Services.AddCors(options =>
-                {
-                    options.AddPolicy("AllowFrontend", policy =>
-                    {
-                        policy
-                            .WithOrigins(builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? throw new InvalidOperationException("No allowed origins configured"))
-                            .AllowAnyHeader()
-                            .AllowAnyMethod();
-                    });
-                });
+        builder.Services.AddCors();
 
         builder.Services.AddControllers();
 
@@ -102,7 +100,18 @@ internal static class HostingExtensions
         {
             app.UseDeveloperExceptionPage();
         }
-        app.UseCors("AllowFrontend");
+
+        app.UseCors(policyBuilder =>
+            {
+                CorsOptions corsOptions = app.Services
+                    .GetRequiredService<IOptions<CorsOptions>>()
+                    .Value;
+
+                policyBuilder
+                    .WithOrigins(corsOptions.AllowedOrigins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
 
         app.UseStaticFiles();
         app.UseRouting();

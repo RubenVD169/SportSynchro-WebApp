@@ -1,6 +1,7 @@
 namespace SportSynchro.IdentityServer.Options;
 
-public class FrontendOptions
+public sealed class FrontendOptions
 {
-    public string BaseUrl { get; set; } = string.Empty;
+    public string Authority { get; set; } = string.Empty;
+    public string ClientUrl { get; set; } = string.Empty;
 }
