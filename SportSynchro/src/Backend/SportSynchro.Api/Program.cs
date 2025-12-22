@@ -1,9 +1,15 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SportSynchro.Api.Options;
+using SportSynchro.Application.SportsSeeding;
+using SportSynchro.Application.SportsSeeding.Abstractions;
+using SportSynchro.Infrastructure.External.TheSportsDb;
+using SportSynchro.Infrastructure.Options;
 using SportSynchro.Infrastructure.Persistence;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
 
 builder.Services.Configure<DatabaseOptions>(
     builder.Configuration.GetSection(nameof(DatabaseOptions)));
@@ -14,15 +20,33 @@ builder.Services.Configure<AuthenticationOptions>(
 builder.Services.Configure<CorsOptions>(
     builder.Configuration.GetSection(nameof(CorsOptions)));
 
+builder.Services.Configure<TheSportsDbOptions>(
+    builder.Configuration.GetSection(nameof(TheSportsDbOptions)));
+
 builder.Services.AddDbContext<SportSynchroDbContext>((sp, options) =>
 {
     DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
     options.UseSqlServer(dbOptions.ConnectionString);
 });
 
-// Add services to the container.
+builder.Services.Configure<TheSportsDbOptions>(
+    builder.Configuration.GetSection("TheSportsDb"));
+
+builder.Services.AddHttpClient<ITheSportsDbRepository, TheSportsDbRepository>(
+    (sp, client) =>
+    {
+        TheSportsDbOptions options = sp.GetRequiredService<IOptions<TheSportsDbOptions>>().Value;
+
+        client.BaseAddress = new Uri(options.BaseUrl);
+        client.DefaultRequestHeaders.Add("X-API-KEY", options.ApiKey);
+    });
+
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
+
+builder.Services.AddScoped<ISportsSeedProvider, SportsSeedProvider>();
+builder.Services.AddScoped<ISportsDbSeeder, SportsDbSeeder>();
 
 // Add authentication and authorization
 AuthenticationOptions authOptions = builder.Configuration
@@ -35,8 +59,6 @@ builder.Services.AddAuthentication()
         options.Authority = authOptions.Authority;
         options.TokenValidationParameters.ValidateAudience = false;
     });
-
-
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("ReadPolicy", policy =>
@@ -74,6 +96,8 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.MapControllers();
 
 app.UseHttpsRedirection();
 app.UseCors();

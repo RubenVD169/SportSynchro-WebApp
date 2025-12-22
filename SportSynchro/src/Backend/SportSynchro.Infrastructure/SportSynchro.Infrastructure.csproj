@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\SportSynchro.Application\SportSynchro.Application.csproj" />
     <ProjectReference Include="..\SportSynchro.Domain\SportSynchro.Domain.csproj" />
   </ItemGroup>
 
@@ -19,6 +18,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <UserSecretsId>a6359559-1083-4590-81f5-44b003771988</UserSecretsId>
   </PropertyGroup>
 
 </Project>
