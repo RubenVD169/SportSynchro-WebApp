@@ -5,6 +5,8 @@ using SportSynchro.Domain.Entities;
 using SportSynchro.Domain.ValueObjects;
 using SportSynchro.Infrastructure.Persistence;
 
+namespace SportSynchro.Application.SportsSeeding;
+
 public sealed class SportsDbSeeder : ISportsDbSeeder
 {
     private readonly ISportsSeedProvider _seedProvider;
@@ -20,7 +22,8 @@ public sealed class SportsDbSeeder : ISportsDbSeeder
 
     public async Task SeedAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<SportSeedModel> seedData = await _seedProvider.LoadSeedDataAsync(cancellationToken);
+        IReadOnlyList<SportSeedModel> seedData =
+            await _seedProvider.LoadSeedDataAsync(cancellationToken);
 
         foreach (SportSeedModel sportSeed in seedData)
         {
@@ -46,60 +49,37 @@ public sealed class SportsDbSeeder : ISportsDbSeeder
     }
 
     private async Task SeedLeaguesAsync(
-    Sport sport,
-    IReadOnlyList<LeagueSeedModel> leagues,
-    CancellationToken ct)
+        Sport sport,
+        IReadOnlyList<LeagueSeedModel> leagues,
+        CancellationToken ct)
     {
-        foreach (var leagueSeed in leagues)
+        // Get existing leagues for the sport
+        Dictionary<int, League> existingLeagues =
+            await _db.Leagues
+                .Where(l => l.SportId == sport.Id)
+                .ToDictionaryAsync(l => l.ExternalId, ct);
+
+        List<League> newLeagues = [];
+
+        foreach (LeagueSeedModel leagueSeed in leagues)
         {
-            League? league =
-                await _db.Leagues
-                    .FirstOrDefaultAsync(
-                        l => l.ExternalId == leagueSeed.ExternalId,
-                        ct);
-
-            if (league is null)
-            {
-                league = new League(
-                    leagueSeed.ExternalId,
-                    LeagueName.Create(leagueSeed.Name),
-                    sport.Id,
-                    isVisible: false);
-
-                _db.Leagues.Add(league);
-                await _db.SaveChangesAsync(ct);
-            }
-
-            await SeedTeamsAsync(league, leagueSeed.Teams, ct);
-        }
-    }
-
-    private async Task SeedTeamsAsync(
-    League league,
-    IReadOnlyList<TeamSeedModel> teams,
-    CancellationToken ct)
-    {
-        foreach (TeamSeedModel teamSeed in teams)
-        {
-            bool exists =
-                await _db.Teams.AnyAsync(
-                    t => t.ExternalId == teamSeed.ExternalId,
-                    ct);
-
-            if (exists)
+            if (existingLeagues.ContainsKey(leagueSeed.ExternalId))
                 continue;
 
-            Team team = new(
-                teamSeed.ExternalId,
-                TeamName.Create(teamSeed.Name),
-                teamSeed.Country,
-                league.Id);
+            League league = new(
+                leagueSeed.ExternalId,
+                LeagueName.Create(leagueSeed.Name),
+                sport.Id,
+                isVisible: false);
 
-            _db.Teams.Add(team);
+            newLeagues.Add(league);
+            existingLeagues.Add(leagueSeed.ExternalId, league);
         }
 
-        await _db.SaveChangesAsync(ct);
+        if (newLeagues.Count > 0)
+        {
+            _db.Leagues.AddRange(newLeagues);
+            await _db.SaveChangesAsync(ct);
+        }
     }
-
-
 }

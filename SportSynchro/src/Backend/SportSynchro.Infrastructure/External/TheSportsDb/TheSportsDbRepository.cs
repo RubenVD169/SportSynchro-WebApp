@@ -28,13 +28,13 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
             await using Stream stream =
                 await response.Content.ReadAsStreamAsync(cancellationToken);
 
-        TheSportsDbSportsResponseDto? result =
+        TheSportsDbSportsResponseDto? dto =
             await JsonSerializer.DeserializeAsync<TheSportsDbSportsResponseDto>(
                 stream,
                 JsonOptions,
                 cancellationToken);
 
-        return result?.All ?? new List<TheSportsDbSportDto>();
+        return dto?.All ?? new List<TheSportsDbSportDto>();
 
     }
 
@@ -43,10 +43,9 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
     {
         HttpResponseMessage response =
             await _httpClient.GetAsync("all/leagues", cancellationToken);
-
         response.EnsureSuccessStatusCode();
 
-        await using var stream =
+        await using Stream stream =
             await response.Content.ReadAsStreamAsync(cancellationToken);
 
         TheSportsDbLeaguesResponseDto? dto =
@@ -63,14 +62,14 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
     int leagueExternalId,
     CancellationToken cancellationToken)
     {
-        var response =
+        HttpResponseMessage response =
             await _httpClient.GetAsync(
                 $"list/teams/{leagueExternalId}",
                 cancellationToken);
 
         response.EnsureSuccessStatusCode();
 
-        await using var stream =
+        await using Stream stream =
             await response.Content.ReadAsStreamAsync(cancellationToken);
 
         TheSportsDbTeamsResponseDto? dto =

@@ -1,8 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SportSynchro.Api.Options;
+using SportSynchro.Api.Workers;
+using SportSynchro.Application.Interfaces.Services;
+using SportSynchro.Application.Leagues;
+using SportSynchro.Application.Services;
 using SportSynchro.Application.SportsSeeding;
 using SportSynchro.Application.SportsSeeding.Abstractions;
+using SportSynchro.Application.SportsSeeding.Options;
 using SportSynchro.Infrastructure.External.TheSportsDb;
 using SportSynchro.Infrastructure.Options;
 using SportSynchro.Infrastructure.Persistence;
@@ -22,6 +27,9 @@ builder.Services.Configure<CorsOptions>(
 
 builder.Services.Configure<TheSportsDbOptions>(
     builder.Configuration.GetSection(nameof(TheSportsDbOptions)));
+
+builder.Services.Configure<SportsSeedingOptions>(
+    builder.Configuration.GetSection(nameof(SportsSeedingOptions)));
 
 builder.Services.AddDbContext<SportSynchroDbContext>((sp, options) =>
 {
@@ -47,6 +55,9 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<ISportsSeedProvider, SportsSeedProvider>();
 builder.Services.AddScoped<ISportsDbSeeder, SportsDbSeeder>();
+builder.Services.AddScoped<ILeagueActivationService, LeagueActivationService>();
+builder.Services.AddScoped<ITeamImportService, TeamImportService>();
+
 
 // Add authentication and authorization
 AuthenticationOptions authOptions = builder.Configuration
@@ -88,6 +99,11 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHostedService<SportsSeedingWorker>();
+}
 
 WebApplication app = builder.Build();
 
