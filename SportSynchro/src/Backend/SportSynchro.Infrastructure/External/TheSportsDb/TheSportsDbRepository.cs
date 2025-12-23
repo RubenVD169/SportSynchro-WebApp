@@ -1,5 +1,7 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using SportSynchro.Infrastructure.External.TheSportsDb.Models.Leagues;
+using SportSynchro.Infrastructure.External.TheSportsDb.Models.Match;
 using SportSynchro.Infrastructure.External.TheSportsDb.Models.Sports;
 using SportSynchro.Infrastructure.External.TheSportsDb.Models.Teams;
 
@@ -10,7 +12,8 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
     private static readonly JsonSerializerOptions JsonOptions =
         new()
         {
-            PropertyNameCaseInsensitive = true
+            PropertyNameCaseInsensitive = true,
+            NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
     private readonly HttpClient _httpClient;
 
@@ -25,8 +28,8 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
         HttpResponseMessage response = await _httpClient.GetAsync("all/sports", cancellationToken);
         response.EnsureSuccessStatusCode();
 
-            await using Stream stream =
-                await response.Content.ReadAsStreamAsync(cancellationToken);
+        await using Stream stream =
+            await response.Content.ReadAsStreamAsync(cancellationToken);
 
         TheSportsDbSportsResponseDto? dto =
             await JsonSerializer.DeserializeAsync<TheSportsDbSportsResponseDto>(
@@ -79,5 +82,28 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
                 cancellationToken);
 
         return dto?.List ?? [];
+    }
+
+    public async Task<IReadOnlyList<TheSportsDbMatchDto>> GetMatchesByTeamAsync(
+        int teamExternalId,
+        CancellationToken cancellationToken)
+    {
+        HttpResponseMessage response =
+            await _httpClient.GetAsync(
+                $"schedule/full/team/{teamExternalId}",
+                cancellationToken);
+
+        response.EnsureSuccessStatusCode();
+
+        await using Stream stream =
+            await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        TheSportsDbMatchesResponseDto? dto =
+            await JsonSerializer.DeserializeAsync<TheSportsDbMatchesResponseDto>(
+                stream,
+                JsonOptions,
+                cancellationToken);
+
+        return dto?.Schedule ?? [];
     }
 }

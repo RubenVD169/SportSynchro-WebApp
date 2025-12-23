@@ -30,6 +30,9 @@ public sealed class LeagueConfiguration : IEntityTypeConfiguration<League>
               builder.Property(l => l.MatchesImported)
                      .IsRequired();
 
+              builder.Property(l => l.MatchesImportedUntilUtc)
+                     .HasColumnType("datetime2")
+                     .IsRequired(false);
 
               builder.ComplexProperty(l => l.Name, name =>
               {

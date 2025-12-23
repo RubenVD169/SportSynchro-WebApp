@@ -1,9 +1,9 @@
+using Duende.IdentityModel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SportSynchro.Api.Options;
 using SportSynchro.Api.Workers;
 using SportSynchro.Application.Interfaces.Services;
-using SportSynchro.Application.Leagues;
 using SportSynchro.Application.Services;
 using SportSynchro.Application.SportsSeeding;
 using SportSynchro.Application.SportsSeeding.Abstractions;
@@ -19,8 +19,8 @@ builder.Services.AddControllers();
 builder.Services.Configure<DatabaseOptions>(
     builder.Configuration.GetSection(nameof(DatabaseOptions)));
 
-builder.Services.Configure<AuthenticationOptions>(
-    builder.Configuration.GetSection(nameof(AuthenticationOptions)));
+builder.Services.Configure<IdentityServerOptions>(
+    builder.Configuration.GetSection(nameof(IdentityServerOptions)));
 
 builder.Services.Configure<CorsOptions>(
     builder.Configuration.GetSection(nameof(CorsOptions)));
@@ -57,18 +57,19 @@ builder.Services.AddScoped<ISportsSeedProvider, SportsSeedProvider>();
 builder.Services.AddScoped<ISportsDbSeeder, SportsDbSeeder>();
 builder.Services.AddScoped<ILeagueActivationService, LeagueActivationService>();
 builder.Services.AddScoped<ITeamImportService, TeamImportService>();
-
+builder.Services.AddScoped<IMatchImportService, MatchImportService>();
 
 // Add authentication and authorization
-AuthenticationOptions authOptions = builder.Configuration
-    .GetSection(nameof(AuthenticationOptions))
-    .Get<AuthenticationOptions>()!;
+IdentityServerOptions authOptions = builder.Configuration
+    .GetSection(nameof(IdentityServerOptions))
+    .Get<IdentityServerOptions>()!;
 
 builder.Services.AddAuthentication()
     .AddJwtBearer(options =>
     {
         options.Authority = authOptions.Authority;
         options.TokenValidationParameters.ValidateAudience = false;
+        options.MapInboundClaims = false;
     });
 
 builder.Services.AddAuthorizationBuilder()
