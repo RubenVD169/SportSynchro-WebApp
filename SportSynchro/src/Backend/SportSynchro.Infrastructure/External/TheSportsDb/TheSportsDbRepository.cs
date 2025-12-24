@@ -1,9 +1,10 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using SportSynchro.Infrastructure.External.TheSportsDb.Models.Leagues;
-using SportSynchro.Infrastructure.External.TheSportsDb.Models.Match;
-using SportSynchro.Infrastructure.External.TheSportsDb.Models.Sports;
-using SportSynchro.Infrastructure.External.TheSportsDb.Models.Teams;
+using SportSynchro.Application.Interfaces.External;
+using SportSynchro.External.TheSportsDb.Contracts.Models.Leagues;
+using SportSynchro.External.TheSportsDb.Contracts.Models.Matches;
+using SportSynchro.External.TheSportsDb.Contracts.Models.Sports;
+using SportSynchro.External.TheSportsDb.Contracts.Models.Teams;
 
 namespace SportSynchro.Infrastructure.External.TheSportsDb;
 

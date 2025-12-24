@@ -2,7 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SportSynchro.Domain\SportSynchro.Domain.csproj" />
-    <ProjectReference Include="..\SportSynchro.Infrastructure\SportSynchro.Infrastructure.csproj" />
+    <ProjectReference Include="..\SportSynchro.External.TheSportsDb.Contracts\SportSynchro.External.TheSportsDb.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>

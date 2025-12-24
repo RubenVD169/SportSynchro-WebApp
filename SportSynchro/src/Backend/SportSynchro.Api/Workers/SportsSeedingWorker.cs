@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
-using SportSynchro.Application.SportsSeeding.Options;
-using SportSynchro.Application.SportsSeeding.Abstractions;
+using SportSynchro.Api.Options;
+using SportSynchro.Infrastructure.Persistence.Seeding;
 
 namespace SportSynchro.Api.Workers;
 

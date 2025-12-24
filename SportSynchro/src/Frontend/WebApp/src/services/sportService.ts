@@ -1,15 +1,17 @@
-import axios from "axios";
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL;
+import { api } from "../lib/api";
 
 export async function fetchSports() {
-  const res = await axios.get(`${API_BASE}/sports`);
+  const res = await api.get("/sports");
   return res.data;
 }
 
-export async function updateSportVisibility(sportId: number, visible: boolean) {
-  const res = await axios.patch(`${API_BASE}/sports/${sportId}/visibility`, {
+export async function updateSportVisibility(
+  sportId: number,
+  visible: boolean
+) {
+  const res = await api.patch(`/sports/${sportId}/visibility`, {
     visible,
   });
+
   return res.data;
 }

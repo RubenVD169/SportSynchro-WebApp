@@ -1,7 +1,7 @@
 import {
   createContext,
+  useCallback,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
 
@@ -30,12 +30,7 @@ export function SportsProvider({ children }: { children: ReactNode }) {
 
   const [loadingSports, setLoadingSports] = useState(false);
 
-  // Load sports at startup
-  useEffect(() => {
-    refreshSports();
-  }, []);
-
-  async function refreshSports() {
+  const refreshSports = useCallback(async () => {
     setLoadingSports(true);
     try {
       const data = await fetchSports();
@@ -43,7 +38,7 @@ export function SportsProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingSports(false);
     }
-  }
+  }, []);
 
   function selectSport(id: number) {
     setSelectedSportId(id);

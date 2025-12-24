@@ -1,40 +1,46 @@
+using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Domain.Entities;
-using SportSynchro.Infrastructure.Persistence;
 
 namespace SportSynchro.Application.Services;
 
 public sealed class LeagueActivationService : ILeagueActivationService
 {
+    private readonly ILeagueRepository _leagueRepository;
     private readonly ITeamImportService _teamImportService;
     private readonly IMatchImportService _matchImportService;
-    private readonly SportSynchroDbContext _db;
 
     public LeagueActivationService(
+        ILeagueRepository leagueRepository,
         ITeamImportService teamImportService,
-        IMatchImportService matchImportService,
-        SportSynchroDbContext db)
+        IMatchImportService matchImportService)
     {
+        _leagueRepository = leagueRepository;
         _teamImportService = teamImportService;
         _matchImportService = matchImportService;
-        _db = db;
     }
 
-    public async Task SetLeagueVisibilityAsync(
-        League league,
+    public async Task<bool> SetLeagueVisibilityAsync(
+        int leagueId,
         bool isVisible,
         CancellationToken cancellationToken = default)
     {
-        // Change visibility domain logic
+        League? league =
+            await _leagueRepository.GetByIdAsync(
+                leagueId,
+                cancellationToken);
+
+        if (league is null)
+            return false;
+
         league.SetVisibility(isVisible);
 
         if (!isVisible)
         {
-            await _db.SaveChangesAsync(cancellationToken);
-            return;
+            await _leagueRepository.SaveChangesAsync(cancellationToken);
+            return true;
         }
 
-        // Lazyloads teams first 
         if (!league.TeamsImported)
         {
             await _teamImportService.ImportTeamsForLeagueAsync(
@@ -44,11 +50,12 @@ public sealed class LeagueActivationService : ILeagueActivationService
             league.MarkTeamsImported();
         }
 
-        // Lazyloads matches next 
         if (!league.MatchesImported)
         {
-            DateTime? latestImportedUtc = 
-                await _matchImportService.ImportMatchesForLeagueAsync(league, cancellationToken);
+            DateTime? latestImportedUtc =
+                await _matchImportService.ImportMatchesForLeagueAsync(
+                    league,
+                    cancellationToken);
 
             if (latestImportedUtc is not null)
             {
@@ -56,7 +63,7 @@ public sealed class LeagueActivationService : ILeagueActivationService
             }
         }
 
-        // Persist state
-        await _db.SaveChangesAsync(cancellationToken);
+        await _leagueRepository.SaveChangesAsync(cancellationToken);
+        return true;
     }
 }
