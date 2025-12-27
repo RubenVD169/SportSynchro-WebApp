@@ -27,12 +27,14 @@ public sealed class SportRepository : ISportRepository
         CancellationToken cancellationToken = default)
     {
         return await _db.Sports
+            .AsTracking()
             .SingleOrDefaultAsync(s => s.Id == sportId, cancellationToken);
     }
 
-    public async Task SaveChangesAsync(
+    public async Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default)
     {
-        await _db.SaveChangesAsync(cancellationToken);
+        int result = await _db.SaveChangesAsync(cancellationToken);
+        return result;
     }
 }

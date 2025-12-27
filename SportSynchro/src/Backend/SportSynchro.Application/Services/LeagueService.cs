@@ -1,16 +1,17 @@
 using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
+using SportSynchro.Application.Models.Leagues;
 using SportSynchro.Domain.Entities;
 
 namespace SportSynchro.Application.Services;
 
-public sealed class LeagueActivationService : ILeagueActivationService
+public sealed class LeagueService : ILeagueService
 {
     private readonly ILeagueRepository _leagueRepository;
     private readonly ITeamImportService _teamImportService;
     private readonly IMatchImportService _matchImportService;
 
-    public LeagueActivationService(
+    public LeagueService(
         ILeagueRepository leagueRepository,
         ITeamImportService teamImportService,
         IMatchImportService matchImportService)
@@ -18,6 +19,21 @@ public sealed class LeagueActivationService : ILeagueActivationService
         _leagueRepository = leagueRepository;
         _teamImportService = teamImportService;
         _matchImportService = matchImportService;
+    }
+
+    public async Task<IReadOnlyList<LeagueAdminModel>> 
+        GetLeaguesForAdminBySportIdAsync(int sportId, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<League> leagues = await _leagueRepository.GetBySportIdAsync(
+            sportId,
+            cancellationToken);
+        
+        return [.. leagues
+            .Select(l => new LeagueAdminModel(
+                l.Id,
+                l.Name.Value,
+                l.IsVisible
+            ))];
     }
 
     public async Task<bool> SetLeagueVisibilityAsync(

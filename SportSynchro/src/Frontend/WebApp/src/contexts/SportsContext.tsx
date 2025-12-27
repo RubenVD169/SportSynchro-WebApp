@@ -45,9 +45,24 @@ export function SportsProvider({ children }: { children: ReactNode }) {
   }
 
   async function toggleSportVisibility(id: number, current: boolean) {
-    await updateSportVisibility(id, !current);
-    await refreshSports();
+  const newValue = !current;
+
+  setSports((prev) =>
+    prev.map((sport) =>
+      sport.id === id ? { ...sport, visible: newValue } : sport
+    )
+  );
+
+  try {
+    await updateSportVisibility(id, newValue);
+  } catch {
+    setSports((prev) =>
+      prev.map((sport) =>
+        sport.id === id ? { ...sport, visible: current } : sport
+      )
+    );
   }
+}
 
   return (
     <SportsContext.Provider

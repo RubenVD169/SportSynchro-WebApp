@@ -1,9 +1,7 @@
-import axios from "axios";
+import { api } from "../lib/api";
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
-
-export async function getLeaguesBySport(sportId: number): Promise<League[]> {
-  const res = await axios.get(`${apiBaseUrl}/sports/${sportId}/leagues`);
+export async function getLeaguesBySportId(sportId: number): Promise<League[]> {
+  const res = await api.get(`/admin/leagues/${sportId}`);
   return res.data;
 }
 
@@ -11,7 +9,7 @@ export async function updateLeagueVisibility(
   leagueId: number,
   visible: boolean
 ): Promise<League> {
-  const res = await axios.patch(`${apiBaseUrl}/leagues/${leagueId}/visibility`, {
+  const res = await api.patch(`/admin/leagues/${leagueId}/visibility`, {
     visible,
   });
   return res.data;

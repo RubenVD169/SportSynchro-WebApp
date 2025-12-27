@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
 
-namespace SportSynchro.Api.Contracts.Sports.Responses;
+namespace SportSynchro.Api.Contracts.Leagues.Responses;
 
-public sealed record SportAdminResponse(
+public sealed record LeagueAdminResponse(
     int Id,
     string Name,
     [property: JsonPropertyName("visible")]

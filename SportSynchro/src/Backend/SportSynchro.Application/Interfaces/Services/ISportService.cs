@@ -6,7 +6,7 @@ public interface ISportService
 {
   Task<IReadOnlyList<SportAdminModel>> GetAllForAdminAsync(
     CancellationToken cancellationToken = default);
-  Task SetVisibilityAsync(
+  Task<bool> SetSportVisibilityAsync(
     int sportId,
     bool isVisible, 
     CancellationToken cancellationToken = default);

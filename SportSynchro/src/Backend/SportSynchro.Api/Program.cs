@@ -1,8 +1,8 @@
-using System.Security.Claims;
-using Duende.IdentityModel;
+
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 using SportSynchro.Api.Auth;
 using SportSynchro.Api.Options;
 using SportSynchro.Api.Workers;
@@ -58,7 +58,7 @@ builder.Services.AddHttpClient<ITheSportsDbRepository, TheSportsDbRepository>(
 builder.Services.AddOpenApi();
 
 builder.Services.AddScoped<ISportsDbSeeder, SportsDbSeeder>();
-builder.Services.AddScoped<ILeagueActivationService, LeagueActivationService>();
+builder.Services.AddScoped<ILeagueService, LeagueService>();
 builder.Services.AddScoped<ITeamImportService, TeamImportService>();
 builder.Services.AddScoped<IMatchImportService, MatchImportService>();
 builder.Services.AddScoped<ISportService, SportService>();
@@ -77,25 +77,23 @@ builder.Services
     .AddAuthentication("Bearer")
     .AddJwtBearer("Bearer", options =>
     {
-        options.Authority = "https://localhost:5001";
+        options.Authority = authOptions.Authority;
         options.RequireHttpsMetadata = false; // alleen lokaal
         options.Audience = "sportsynchro.api";
 
-        options.TokenValidationParameters = new()
+        options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateAudience = true,
             ValidAudience = "sportsynchro.api",
             ValidateIssuer = true,
-            ValidIssuer = "https://localhost:5001",
+            ValidIssuer = authOptions.Authority,
             RoleClaimType = "role",
             NameClaimType = "name"
         };
     });
 
-
-
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("Write", policy =>
+    .AddPolicy("AdminWrite", policy =>
             policy.Requirements.Add(
                 new ClaimOrRoleRequirement(
                     scope: "sportsynchro.api.write",

@@ -21,6 +21,13 @@ public sealed class LeagueRepository : ILeagueRepository
             .SingleOrDefaultAsync(l => l.Id == leagueId, cancellationToken);
     }
 
+    public async Task<IReadOnlyList<League>> GetBySportIdAsync(int sportId, CancellationToken cancellationToken)
+    {
+        return await _db.Leagues
+            .Where(l => l.SportId == sportId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task SaveChangesAsync(
         CancellationToken cancellationToken = default)
     {

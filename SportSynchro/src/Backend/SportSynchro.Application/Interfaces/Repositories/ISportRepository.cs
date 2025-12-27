@@ -11,6 +11,6 @@ public interface ISportRepository
         int sportId,
         CancellationToken cancellationToken = default);
 
-    Task SaveChangesAsync(
+    Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default);
 }

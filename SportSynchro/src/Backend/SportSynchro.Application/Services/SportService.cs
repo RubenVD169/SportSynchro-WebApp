@@ -2,7 +2,6 @@ using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Application.Models.Sports;
 using SportSynchro.Domain.Entities;
-using SportSynchro.Domain.Exceptions;
 
 namespace SportSynchro.Application.Services;
 
@@ -29,17 +28,22 @@ public sealed class SportService : ISportService
             ))];
     }
 
-    public async Task SetVisibilityAsync(
+    public async Task<bool> SetSportVisibilityAsync(
         int sportId,
         bool isVisible,
         CancellationToken cancellationToken = default)
     {
-        Sport sport = await _sportRepository
-            .GetByIdAsync(sportId, cancellationToken) 
-                       ?? throw new SportException($"Sport with id {sportId} was not found.");
+        Sport? sport = await _sportRepository
+            .GetByIdAsync(sportId, cancellationToken);
+
+        if (sport is null)
+            return false;
+        
         sport.SetVisibility(isVisible);
 
-        await _sportRepository
+        int result = await _sportRepository
             .SaveChangesAsync(cancellationToken);
+
+        return result != 0;
     }
 }

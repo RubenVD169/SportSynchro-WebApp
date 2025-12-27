@@ -1,9 +1,8 @@
-namespace SportSynchro.Api.Contracts.Sports.Requests;
-
 using System.Text.Json.Serialization;
 
-public sealed record SetSportVisibilityRequest(
+namespace SportSynchro.Api.Contracts.Leagues.Requests;
+
+public sealed record SetLeagueVisibilityRequest(
     [property: JsonPropertyName("visible")]
     bool IsVisible
 );
-

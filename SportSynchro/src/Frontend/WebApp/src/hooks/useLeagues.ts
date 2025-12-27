@@ -1,21 +1,44 @@
 import { useEffect, useState } from "react";
-import { getLeaguesBySport } from "../services/leagueService";
+import {
+  getLeaguesBySportId,
+  updateLeagueVisibility,
+} from "../services/leagueService";
 
-export default function useLeague(sportId: number | null) {
+export default function useLeagues(sportId: number) {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loadingLeagues, setLoadingLeagues] = useState(false);
 
   useEffect(() => {
     if (!sportId) return;
 
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setLoadingLeagues(true);
+    async function load() {
+      setLoadingLeagues(true);
+      try {
+        const data = await getLeaguesBySportId(sportId);
+        setLeagues(data);
+      } finally {
+        setLoadingLeagues(false);
+      }
+    }
 
-    getLeaguesBySport(sportId).then((data) => {
-      setLeagues(data);
-      setLoadingLeagues(false);
-    });
+    load();
   }, [sportId]);
 
-  return { leagues, loadingLeagues };
+  async function toggleLeagueVisibility(id: number, current: boolean) {
+    const newValue = !current;
+
+    await updateLeagueVisibility(id, newValue);
+
+    setLeagues((prev) =>
+      prev.map((league) =>
+        league.id === id ? { ...league, visible: newValue } : league
+      )
+    );
+  }
+
+  return {
+    leagues,
+    loadingLeagues,
+    toggleLeagueVisibility,
+  };
 }
