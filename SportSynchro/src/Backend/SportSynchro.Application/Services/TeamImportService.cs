@@ -1,31 +1,29 @@
-using Microsoft.EntityFrameworkCore;
+using SportSynchro.Application.Interfaces.External;
+using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Domain.Entities;
 using SportSynchro.Domain.ValueObjects;
-using SportSynchro.Infrastructure.External.TheSportsDb;
-using SportSynchro.Infrastructure.External.TheSportsDb.Models.Teams;
-using SportSynchro.Infrastructure.Persistence;
+using SportSynchro.External.TheSportsDb.Contracts.Models.Teams;
 
 namespace SportSynchro.Application.Services;
 
 public sealed class TeamImportService : ITeamImportService
 {
     private readonly ITheSportsDbRepository _sportsDb;
-    private readonly SportSynchroDbContext _db;
+    private readonly ITeamRepository _teamRepository;
 
     public TeamImportService(
         ITheSportsDbRepository sportsDb,
-        SportSynchroDbContext db)
+        ITeamRepository teamRepository)
     {
         _sportsDb = sportsDb;
-        _db = db;
+        _teamRepository = teamRepository;
     }
 
     public async Task ImportTeamsForLeagueAsync(
         League league,
         CancellationToken cancellationToken = default)
     {
-        // Get teams from external TheSportsDb API
         IReadOnlyList<TheSportsDbTeamDto> apiTeams =
             await _sportsDb.GetTeamsByLeagueAsync(
                 league.ExternalId,
@@ -34,12 +32,11 @@ public sealed class TeamImportService : ITeamImportService
         if (apiTeams.Count == 0)
             return;
 
-        // get existing teams for this league only once
         HashSet<int> existingExternalIds =
-            await _db.Teams
-                .Where(t => t.LeagueId == league.Id)
-                .Select(t => t.ExternalId)
-                .ToHashSetAsync(cancellationToken);
+            await _teamRepository
+                .GetExistingExternalIdsForLeagueAsync(
+                    league.Id,
+                    cancellationToken);
 
         List<Team> newTeams = [];
 
@@ -63,11 +60,13 @@ public sealed class TeamImportService : ITeamImportService
             newTeams.Add(team);
         }
 
-        // Batch insert
         if (newTeams.Count > 0)
         {
-            _db.Teams.AddRange(newTeams);
-            await _db.SaveChangesAsync(cancellationToken);
+            await _teamRepository
+                .AddRangeAsync(newTeams, cancellationToken);
+
+            await _teamRepository
+                .SaveChangesAsync(cancellationToken);
         }
     }
 }

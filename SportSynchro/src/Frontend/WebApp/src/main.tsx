@@ -6,6 +6,7 @@ import { router } from "./router";
 import { SportsProvider } from './contexts/SportsContext';
 import { AuthProvider } from "react-oidc-context";
 import { authSettings } from "./config/authconfig";
+import AuthAxiosBridge from './auth/AuthAxiosBridge';
 
 const onSigninCallback = (): void => {
   window.history.replaceState({}, document.title, window.location.pathname);
@@ -14,6 +15,7 @@ const onSigninCallback = (): void => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <AuthProvider {...authSettings} onSigninCallback={onSigninCallback}>
+      <AuthAxiosBridge />
     <SportsProvider>
       <RouterProvider router={router} />
     </SportsProvider>

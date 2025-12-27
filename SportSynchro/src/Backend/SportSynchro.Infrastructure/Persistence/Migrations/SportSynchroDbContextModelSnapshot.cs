@@ -40,6 +40,9 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
                     b.Property<bool>("MatchesImported")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("MatchesImportedUntilUtc")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("SportId")
                         .HasColumnType("int");
 

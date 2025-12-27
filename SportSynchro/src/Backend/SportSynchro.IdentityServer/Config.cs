@@ -21,9 +21,26 @@ public static class Config
     public static IEnumerable<ApiScope> ApiScopes =>
         new ApiScope[]
         {
-            new ApiScope("sportsynchro.api.read", "Read access to SportSynchro API"),
-            new ApiScope("sportsynchro.api.write", "Write access to SportSynchro API"),
+            new ApiScope("sportsynchro.api.read", "Read access to SportSynchro API", new[] { JwtClaimTypes.Role }),
+            new ApiScope("sportsynchro.api.write", "Write access to SportSynchro API", new[] { JwtClaimTypes.Role }),
         };
+
+    public static IEnumerable<ApiResource> ApiResources =>
+    new ApiResource[]
+    {
+        new ApiResource("sportsynchro.api", "SportSynchro API")
+        {
+            Scopes =
+            {
+                "sportsynchro.api.read",
+                "sportsynchro.api.write"
+            },
+            UserClaims =
+            {
+                JwtClaimTypes.Role
+            }
+        }
+    };
 
     public static IEnumerable<Client> Clients =>
         new Client[]

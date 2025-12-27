@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Duende.IdentityServer.EntityFramework.Mappers;
+using Duende.IdentityServer.Models;
 
 namespace SportSynchro.IdentityServer;
 
@@ -180,6 +181,30 @@ public class SeedData
                     context.ApiScopes.Add(resource.ToEntity());
             context.SaveChanges();
             Log.Debug("Adding ApiScopes done");
+
+            Log.Debug("Adding ApiResources");
+
+            if (!context.ApiResources.Any(ar => ar.Name == "sportsynchro.api"))
+            {
+                ApiResource apiResource = new("sportsynchro.api", "SportSynchro API")
+                {
+                    Scopes =
+                    {
+                        "sportsynchro.api.read",
+                        "sportsynchro.api.write"
+                    },
+                                UserClaims =
+                    {
+                        JwtClaimTypes.Role
+                    }
+                };
+
+                context.ApiResources.Add(apiResource.ToEntity());
+                context.SaveChanges();
+            }
+
+            Log.Debug("Adding ApiResources done");
+
         }
     }
 }

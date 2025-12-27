@@ -1,16 +1,20 @@
+
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
+using SportSynchro.Api.Auth;
 using SportSynchro.Api.Options;
 using SportSynchro.Api.Workers;
+using SportSynchro.Application.Interfaces.External;
+using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
-using SportSynchro.Application.Leagues;
 using SportSynchro.Application.Services;
-using SportSynchro.Application.SportsSeeding;
-using SportSynchro.Application.SportsSeeding.Abstractions;
-using SportSynchro.Application.SportsSeeding.Options;
 using SportSynchro.Infrastructure.External.TheSportsDb;
 using SportSynchro.Infrastructure.Options;
 using SportSynchro.Infrastructure.Persistence;
+using SportSynchro.Infrastructure.Persistence.Seeding;
+using SportSynchro.Infrastructure.Persistence.SqlRepositories;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -19,8 +23,8 @@ builder.Services.AddControllers();
 builder.Services.Configure<DatabaseOptions>(
     builder.Configuration.GetSection(nameof(DatabaseOptions)));
 
-builder.Services.Configure<AuthenticationOptions>(
-    builder.Configuration.GetSection(nameof(AuthenticationOptions)));
+builder.Services.Configure<IdentityServerOptions>(
+    builder.Configuration.GetSection(nameof(IdentityServerOptions)));
 
 builder.Services.Configure<CorsOptions>(
     builder.Configuration.GetSection(nameof(CorsOptions)));
@@ -31,14 +35,14 @@ builder.Services.Configure<TheSportsDbOptions>(
 builder.Services.Configure<SportsSeedingOptions>(
     builder.Configuration.GetSection(nameof(SportsSeedingOptions)));
 
+builder.Services.Configure<TheSportsDbOptions>(
+    builder.Configuration.GetSection("TheSportsDb"));
+
 builder.Services.AddDbContext<SportSynchroDbContext>((sp, options) =>
 {
     DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
     options.UseSqlServer(dbOptions.ConnectionString);
 });
-
-builder.Services.Configure<TheSportsDbOptions>(
-    builder.Configuration.GetSection("TheSportsDb"));
 
 builder.Services.AddHttpClient<ITheSportsDbRepository, TheSportsDbRepository>(
     (sp, client) =>
@@ -53,37 +57,59 @@ builder.Services.AddHttpClient<ITheSportsDbRepository, TheSportsDbRepository>(
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddScoped<ISportsSeedProvider, SportsSeedProvider>();
 builder.Services.AddScoped<ISportsDbSeeder, SportsDbSeeder>();
-builder.Services.AddScoped<ILeagueActivationService, LeagueActivationService>();
+builder.Services.AddScoped<ILeagueService, LeagueService>();
 builder.Services.AddScoped<ITeamImportService, TeamImportService>();
+builder.Services.AddScoped<IMatchImportService, MatchImportService>();
+builder.Services.AddScoped<ISportService, SportService>();
 
+builder.Services.AddScoped<ILeagueRepository, LeagueRepository>();
+builder.Services.AddScoped<ITeamRepository, TeamRepository>();
+builder.Services.AddScoped<IMatchRepository, MatchRepository>();
+builder.Services.AddScoped<ISportRepository, SportRepository>();
 
 // Add authentication and authorization
-AuthenticationOptions authOptions = builder.Configuration
-    .GetSection(nameof(AuthenticationOptions))
-    .Get<AuthenticationOptions>()!;
+IdentityServerOptions authOptions = builder.Configuration
+    .GetSection(nameof(IdentityServerOptions))
+    .Get<IdentityServerOptions>()!;
 
-builder.Services.AddAuthentication()
-    .AddJwtBearer(options =>
+builder.Services
+    .AddAuthentication("Bearer")
+    .AddJwtBearer("Bearer", options =>
     {
         options.Authority = authOptions.Authority;
-        options.TokenValidationParameters.ValidateAudience = false;
+        options.RequireHttpsMetadata = false; // alleen lokaal
+        options.Audience = "sportsynchro.api";
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = true,
+            ValidAudience = "sportsynchro.api",
+            ValidateIssuer = true,
+            ValidIssuer = authOptions.Authority,
+            RoleClaimType = "role",
+            NameClaimType = "name"
+        };
     });
 
 builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("ReadPolicy", policy =>
-        {
-            policy.RequireAuthenticatedUser();
-            policy.RequireClaim("scope",
-                "sportsynchro.api.read");
-        })
-    .AddPolicy("WritePolicy", policy =>
-        {
-            policy.RequireAuthenticatedUser();
-            policy.RequireClaim("scope",
-                "sportsynchro.api.write");
-        });
+    .AddPolicy("AdminWrite", policy =>
+            policy.Requirements.Add(
+                new ClaimOrRoleRequirement(
+                    scope: "sportsynchro.api.write",
+                    role: "Admin")))
+    .AddPolicy("AdminRead", policy =>
+            policy.Requirements.Add(
+                new ClaimOrRoleRequirement(
+                    scope: "sportsynchro.api.read",
+                    role: "Admin")))
+    .AddPolicy("UserRead", policy =>
+            policy.Requirements.Add(
+                new ClaimOrRoleRequirement(
+                    scope: "sportsynchro.api.read")));
+
+builder.Services.AddSingleton<IAuthorizationHandler, SportSynchroAuthHandler>();
+
 
 CorsOptions corsOptions = builder.Configuration
     .GetSection(nameof(CorsOptions))
@@ -99,6 +125,7 @@ builder.Services.AddCors(options =>
             .AllowAnyMethod();
     });
 });
+
 
 if (builder.Environment.IsDevelopment())
 {

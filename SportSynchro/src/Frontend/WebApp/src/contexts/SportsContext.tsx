@@ -1,7 +1,7 @@
 import {
   createContext,
+  useCallback,
   useState,
-  useEffect,
   type ReactNode,
 } from "react";
 
@@ -30,12 +30,7 @@ export function SportsProvider({ children }: { children: ReactNode }) {
 
   const [loadingSports, setLoadingSports] = useState(false);
 
-  // Load sports at startup
-  useEffect(() => {
-    refreshSports();
-  }, []);
-
-  async function refreshSports() {
+  const refreshSports = useCallback(async () => {
     setLoadingSports(true);
     try {
       const data = await fetchSports();
@@ -43,16 +38,31 @@ export function SportsProvider({ children }: { children: ReactNode }) {
     } finally {
       setLoadingSports(false);
     }
-  }
+  }, []);
 
   function selectSport(id: number) {
     setSelectedSportId(id);
   }
 
   async function toggleSportVisibility(id: number, current: boolean) {
-    await updateSportVisibility(id, !current);
-    await refreshSports();
+  const newValue = !current;
+
+  setSports((prev) =>
+    prev.map((sport) =>
+      sport.id === id ? { ...sport, visible: newValue } : sport
+    )
+  );
+
+  try {
+    await updateSportVisibility(id, newValue);
+  } catch {
+    setSports((prev) =>
+      prev.map((sport) =>
+        sport.id === id ? { ...sport, visible: current } : sport
+      )
+    );
   }
+}
 
   return (
     <SportsContext.Provider

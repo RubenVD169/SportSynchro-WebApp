@@ -24,6 +24,7 @@ public sealed class League
         IsVisible = isVisible;
         TeamsImported = false;
         MatchesImported = false;
+        MatchesImportedUntilUtc = null;
     }
 
     public int Id { get; private set; }
@@ -32,6 +33,8 @@ public sealed class League
     public bool IsVisible { get; private set; }
     public bool TeamsImported { get; private set; }
     public bool MatchesImported { get; private set; }
+    public DateTime? MatchesImportedUntilUtc { get; private set; }
+
     public LeagueName Name => _name;
     
     public void SetVisibility(bool visible)
@@ -39,7 +42,13 @@ public sealed class League
     
     public void MarkTeamsImported()
         => TeamsImported = true;
-    
-    public void MarkMatchesImported()
-        => MatchesImported = true;
+
+    public void MarkMatchesImportedUntil(DateTime untilUtc)
+    {
+        if (untilUtc == default)
+            throw new LeagueException("MatchesImportedUntilUtc cannot be default.");
+
+        MatchesImported = true;
+        MatchesImportedUntilUtc = untilUtc;
+    }
 }
