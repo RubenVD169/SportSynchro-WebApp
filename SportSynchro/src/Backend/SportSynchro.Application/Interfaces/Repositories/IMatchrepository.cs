@@ -1,3 +1,4 @@
+using SportSynchro.Application.Models.Matches;
 using SportSynchro.Domain.Entities;
 
 namespace SportSynchro.Application.Interfaces.Repositories;
@@ -15,4 +16,6 @@ public interface IMatchRepository
 
    Task SaveChangesAsync(
         CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<MatchModel>> GetRecentFinishedMatchesByLeagueIdAsync(
+      int leagueId, CancellationToken cancellationToken);
 }

@@ -10,3 +10,13 @@ interface League {
   name: string;
   visible: boolean;
 }
+
+interface Match {
+  id: number;
+  leagueId: number;
+  homeTeam: string;
+  awayTeam: string;
+  homeScore: number;
+  awayScore: number;
+  matchDate: string; // ISO date string
+}

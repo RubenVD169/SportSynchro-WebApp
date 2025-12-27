@@ -20,4 +20,19 @@ public static class LeagueMappingExtensions
     {
         return [.. models.Select(ToAdminResponse)];
     }
+
+    public static LeagueUserResponse ToUserResponse(
+        this LeagueUserModel model)
+    {
+        return new LeagueUserResponse(
+            model.Id,
+            model.Name
+        );
+    }
+
+    public static IReadOnlyList<LeagueUserResponse> ToUserResponses(
+        this IEnumerable<LeagueUserModel> models)
+    {
+        return [.. models.Select(ToUserResponse)];
+    }
 }

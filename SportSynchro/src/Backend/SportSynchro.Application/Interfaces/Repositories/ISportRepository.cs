@@ -6,7 +6,8 @@ public interface ISportRepository
 {
     Task<IReadOnlyList<Sport>> GetAllAsync(
         CancellationToken cancellationToken = default);
-
+    Task<IReadOnlyList<Sport>> GetAllVisibleAsync(
+        CancellationToken cancellationToken = default);
     Task<Sport?> GetByIdAsync(
         int sportId,
         CancellationToken cancellationToken = default);

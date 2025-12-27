@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  fetchUserLeagues,
   getLeaguesBySportId,
   updateLeagueVisibility,
 } from "../services/leagueService";
@@ -7,6 +8,7 @@ import {
 export default function useLeagues(sportId: number) {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [loadingLeagues, setLoadingLeagues] = useState(false);
+  const [userLeagues, setUserLeagues] = useState<League[]>([]);
 
   useEffect(() => {
     if (!sportId) return;
@@ -24,6 +26,22 @@ export default function useLeagues(sportId: number) {
     load();
   }, [sportId]);
 
+  useEffect(() => {
+    if (!sportId) return;
+
+    async function loadUserLeagues() {
+      setLoadingLeagues(true);
+      try {
+        const data = await fetchUserLeagues(sportId);
+        setUserLeagues(data);
+      } finally {
+        setLoadingLeagues(false);
+      }
+    }
+
+    loadUserLeagues();
+  }, [sportId]);
+
   async function toggleLeagueVisibility(id: number, current: boolean) {
     const newValue = !current;
 
@@ -39,6 +57,7 @@ export default function useLeagues(sportId: number) {
   return {
     leagues,
     loadingLeagues,
+    userLeagues,
     toggleLeagueVisibility,
   };
 }

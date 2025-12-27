@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SportSynchro.Application.Interfaces.Repositories;
+using SportSynchro.Application.Models.Matches;
 using SportSynchro.Domain.Entities;
 
 namespace SportSynchro.Infrastructure.Persistence.SqlRepositories;
@@ -39,5 +40,39 @@ public sealed class MatchRepository : IMatchRepository
         CancellationToken cancellationToken = default)
     {
         await _db.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<MatchModel>> GetRecentFinishedMatchesByLeagueIdAsync(
+        int leagueId, CancellationToken cancellationToken)
+    {
+        return await _db.Matches
+            .AsNoTracking()
+            .Where(m => m.LeagueId == leagueId && m.Status.Value == "Finished")
+            .Join(
+                _db.Leagues.AsNoTracking(),
+                match => match.LeagueId,
+                league => league.Id,
+                (match, league) => new { match, league })
+            .Join(
+                _db.Teams.AsNoTracking(),
+                ml => ml.match.HomeTeamId,
+                homeTeam => homeTeam.Id,
+                (ml, homeTeam) => new { ml.match, ml.league, homeTeam })
+            .Join(
+                _db.Teams.AsNoTracking(),
+                mlh => mlh.match.AwayTeamId,
+                awayTeam => awayTeam.Id,
+                (mlh, awayTeam) => new { mlh.match, mlh.league, mlh.homeTeam, awayTeam })
+            .OrderByDescending(x => x.match.StartTimeUtc)
+            .Take(10)
+            .Select(x => new MatchModel(
+                x.match.Id,
+                x.league.Name.Value,
+                x.match.StartTimeUtc,
+                x.homeTeam.Name.Value,
+                x.awayTeam.Name.Value,
+                x.match.HomeScore ?? 0,
+                x.match.AwayScore ?? 0))
+            .ToListAsync(cancellationToken);
     }
 }

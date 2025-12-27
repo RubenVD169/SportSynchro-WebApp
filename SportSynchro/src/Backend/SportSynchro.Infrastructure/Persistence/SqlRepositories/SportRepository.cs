@@ -22,6 +22,15 @@ public sealed class SportRepository : ISportRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Sport>> GetAllVisibleAsync(
+        CancellationToken cancellationToken = default)
+    {
+        return await _db.Sports
+            .Where(s => s.IsVisible)
+            .OrderBy(s => s.Name.Value)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<Sport?> GetByIdAsync(
         int sportId,
         CancellationToken cancellationToken = default)

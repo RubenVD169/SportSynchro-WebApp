@@ -13,6 +13,14 @@ public sealed class LeagueRepository : ILeagueRepository
         _db = db;
     }
 
+    // User is only allowed to see leagues that are marked as visible
+    public async Task<IReadOnlyList<League>> GetForUserBySportIdAsync(int sportId, CancellationToken cancellationToken)
+    {
+       return await _db.Leagues
+            .Where(l => l.IsVisible && l.SportId == sportId)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<League?> GetByIdAsync(
         int leagueId,
         CancellationToken cancellationToken = default)

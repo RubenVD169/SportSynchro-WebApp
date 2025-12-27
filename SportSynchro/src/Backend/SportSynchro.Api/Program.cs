@@ -62,6 +62,7 @@ builder.Services.AddScoped<ILeagueService, LeagueService>();
 builder.Services.AddScoped<ITeamImportService, TeamImportService>();
 builder.Services.AddScoped<IMatchImportService, MatchImportService>();
 builder.Services.AddScoped<ISportService, SportService>();
+builder.Services.AddScoped<IMatchService, MatchService>();
 
 builder.Services.AddScoped<ILeagueRepository, LeagueRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();

@@ -21,6 +21,17 @@ public sealed class LeagueService : ILeagueService
         _matchImportService = matchImportService;
     }
 
+    public async Task<IReadOnlyList<LeagueUserModel>> 
+        GetAllForUserBySportIdAsync(int sportId, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<League> leagues = await _leagueRepository.GetForUserBySportIdAsync(sportId, cancellationToken);
+        return [.. leagues
+            .Select(l => new LeagueUserModel(
+                l.Id,
+                l.Name.Value
+            ))];
+    }
+
     public async Task<IReadOnlyList<LeagueAdminModel>> 
         GetLeaguesForAdminBySportIdAsync(int sportId, CancellationToken cancellationToken)
     {
