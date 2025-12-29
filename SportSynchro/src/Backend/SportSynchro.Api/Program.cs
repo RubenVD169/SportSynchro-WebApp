@@ -68,6 +68,8 @@ builder.Services.AddScoped<ILeagueRepository, LeagueRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
 builder.Services.AddScoped<IMatchRepository, MatchRepository>();
 builder.Services.AddScoped<ISportRepository, SportRepository>();
+builder.Services.AddScoped<ISeasonRepository, SeasonRepository>();
+builder.Services.AddScoped<ISeasonTeamRepository, SeasonTeamRepository>();
 
 // Add authentication and authorization
 IdentityServerOptions authOptions = builder.Configuration

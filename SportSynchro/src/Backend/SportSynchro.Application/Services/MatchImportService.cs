@@ -11,74 +11,62 @@ namespace SportSynchro.Application.Services;
 public sealed class MatchImportService : IMatchImportService
 {
     private readonly ITheSportsDbRepository _sportsDb;
-    private readonly ITeamRepository _teamRepository;
+    private readonly ISeasonTeamRepository _seasonTeamRepository;
     private readonly IMatchRepository _matchRepository;
 
     public MatchImportService(
         ITheSportsDbRepository sportsDb,
-        ITeamRepository teamRepository,
+        ISeasonTeamRepository seasonTeamRepository,
         IMatchRepository matchRepository)
     {
         _sportsDb = sportsDb;
-        _teamRepository = teamRepository;
+        _seasonTeamRepository = seasonTeamRepository;
         _matchRepository = matchRepository;
     }
 
-    public async Task<DateTime?> ImportMatchesForLeagueAsync(
-        League league,
+    public async Task<DateTime?> ImportMatchesForSeasonAsync(
+        Season season,
+        int leagueExternalId,
         CancellationToken cancellationToken = default)
     {
-        // Safety: matches require teams
-        // if (!league.TeamsImported)
-        //     return null;
-
-        // Load all teams for league (externalId -> teamId)
+        // Get all teams participating in this season
+        // ExternalTeamId -> InternalTeamId
         Dictionary<int, int> teamLookup =
-            await _teamRepository.GetTeamLookupForLeagueAsync(
-                league.Id,
+            await _seasonTeamRepository.GetTeamLookupForSeasonAsync(
+                season.Id,
                 cancellationToken);
 
         if (teamLookup.Count == 0)
             return null;
 
-        Dictionary<int, TheSportsDbMatchDto> uniqueMatches = [];
+        // Fetch all matches for this league + season in a single API call
+        IReadOnlyList<TheSportsDbMatchDto> apiMatches =
+            await _sportsDb.GetMatchesByLeagueAndSeasonAsync(
+                leagueExternalId,
+                season.Key.Value,
+                cancellationToken);
 
-        // Fetch matches per team
-        foreach (int teamExternalId in teamLookup.Keys)
-        {
-            IReadOnlyList<TheSportsDbMatchDto> teamMatches =
-                await _sportsDb.GetMatchesByTeamAsync(
-                    teamExternalId,
-                    cancellationToken);
-
-            foreach (TheSportsDbMatchDto dto in teamMatches)
-            {
-                int matchExternalId = dto.IdEvent;
-
-                uniqueMatches.TryAdd(matchExternalId, dto);
-            }
-        }
-
-        if (uniqueMatches.Count == 0)
+        if (apiMatches.Count == 0)
             return null;
 
-        // Detect already imported matches
-        Dictionary<int, Match> existingMatches =
-            await _matchRepository.GetByExternalIdsAsync(
-                league.Id,
-                uniqueMatches.Keys,
+        // Detect which matches are already imported (idempotency guard)
+        HashSet<int> existingMatchExternalIds =
+            await _matchRepository.GetExistingExternalIdsForSeasonAsync(
+                season.Id,
+                apiMatches.Select(m => m.IdEvent).ToHashSet(),
                 cancellationToken);
 
         DateTime? latestImportedUtc = null;
 
-        foreach ((int externalId, TheSportsDbMatchDto dto) in uniqueMatches)
+        foreach (TheSportsDbMatchDto dto in apiMatches)
         {
-            if (existingMatches.ContainsKey(externalId))
+            // Skip already imported matches
+            if (existingMatchExternalIds.Contains(dto.IdEvent))
                 continue;
 
             if (!TryMapMatch(
                     dto,
-                    league,
+                    season,
                     teamLookup,
                     out Match? match,
                     out DateTime? startUtc))
@@ -88,6 +76,7 @@ public sealed class MatchImportService : IMatchImportService
 
             await _matchRepository.AddAsync(match!, cancellationToken);
 
+            // Track the latest imported match start time
             if (startUtc is not null &&
                 (latestImportedUtc is null || startUtc > latestImportedUtc))
             {
@@ -96,13 +85,12 @@ public sealed class MatchImportService : IMatchImportService
         }
 
         await _matchRepository.SaveChangesAsync(cancellationToken);
-
         return latestImportedUtc;
     }
 
     private static bool TryMapMatch(
         TheSportsDbMatchDto dto,
-        League league,
+        Season season,
         Dictionary<int, int> teamLookup,
         out Match? match,
         out DateTime? startUtc)
@@ -110,26 +98,24 @@ public sealed class MatchImportService : IMatchImportService
         match = null;
         startUtc = null;
 
-        int homeExternalId = dto.IdHomeTeam;
-        int awayExternalId = dto.IdAwayTeam;
-
-        if (homeExternalId <= 0 || awayExternalId <= 0)
+        // Resolve home team
+        if (!teamLookup.TryGetValue(dto.IdHomeTeam, out int homeTeamId))
             return false;
 
-        if (!teamLookup.TryGetValue(homeExternalId, out int homeTeamId))
+        // Resolve away team
+        if (!teamLookup.TryGetValue(dto.IdAwayTeam, out int awayTeamId))
             return false;
 
-        if (!teamLookup.TryGetValue(awayExternalId, out int awayTeamId))
-            return false;
-
+        // Parse start time
         if (!TryParseStartUtc(dto, out DateTime parsedStartUtc))
             return false;
 
-        MatchStatus status = MapStatus(dto.StrStatus);
+        MatchStatus status =
+            MapStatus(dto.StrStatus.ToUpperInvariant());
 
         match = new Match(
             externalId: dto.IdEvent,
-            seasonId: 1, //TODO
+            seasonId: season.Id,
             homeTeamId: homeTeamId,
             awayTeamId: awayTeamId,
             startTimeUtc: parsedStartUtc,
@@ -140,27 +126,20 @@ public sealed class MatchImportService : IMatchImportService
     }
 
     private static bool TryParseStartUtc(
-     TheSportsDbMatchDto dto,
-     out DateTime startUtc)
+        TheSportsDbMatchDto dto,
+        out DateTime startUtc)
     {
         startUtc = default;
 
         if (string.IsNullOrWhiteSpace(dto.StrTimestamp))
             return false;
 
-        if (!DateTime.TryParse(
-                dto.StrTimestamp,
-                CultureInfo.InvariantCulture,
-                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
-                out DateTime parsed))
-        {
-            return false;
-        }
-
-        startUtc = parsed;
-        return true;
+        return DateTime.TryParse(
+            dto.StrTimestamp,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+            out startUtc);
     }
-
 
     private static MatchStatus MapStatus(string? status)
     {
@@ -168,13 +147,17 @@ public sealed class MatchImportService : IMatchImportService
         {
             "NS" =>
                 MatchStatus.Create("Not Started"),
-            "FT" or "AET" or "PEN" =>
+
+            "FT" or "AET" or "PEN" or "MATCH FINISHED" =>
                 MatchStatus.Create("Finished"),
-            "1H" or "HT" or "2H" or "ET" or "BT" or "P" =>
+
+            "1H" or "HT" or "2H" or "ET" or "BT" or "P" or "IN PROGRESS" =>
                 MatchStatus.Create("In Progress"),
-            "PST" or "CANC" or "ABD" or "AWD" or "WO" =>
+
+            "PST" or "CANC" or "ABD" or "AWD" or "WO" or "POSTPONED" =>
                 MatchStatus.Create("Postponed"),
-            _ => 
+
+            _ =>
                 MatchStatus.Create("Not Started")
         };
     }

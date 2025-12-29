@@ -10,6 +10,11 @@ public interface IMatchRepository
         IReadOnlyCollection<int> externalIds,
         CancellationToken cancellationToken = default);
 
+    Task<HashSet<int>> GetExistingExternalIdsForSeasonAsync(
+     int seasonId,
+     IReadOnlyCollection<int> externalIds,
+     CancellationToken cancellationToken = default);
+
     Task AddAsync(
         Match match,
         CancellationToken cancellationToken = default);

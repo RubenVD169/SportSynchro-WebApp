@@ -29,6 +29,17 @@ public sealed class MatchRepository : IMatchRepository
                 cancellationToken);
     }
 
+    public async Task<HashSet<int>> GetExistingExternalIdsForSeasonAsync(
+    int seasonId,
+    IReadOnlyCollection<int> externalIds,
+    CancellationToken cancellationToken = default)
+    {
+        return await _db.Matches
+            .Where(m => m.SeasonId == seasonId && externalIds.Contains(m.ExternalId))
+            .Select(m => m.ExternalId)
+            .ToHashSetAsync(cancellationToken);
+    }
+
     public async Task AddAsync(
         Match match,
         CancellationToken cancellationToken = default)

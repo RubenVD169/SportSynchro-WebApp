@@ -4,7 +4,8 @@ namespace SportSynchro.Application.Interfaces.Services;
 
 public interface ITeamImportService
 {
-    Task ImportTeamsForLeagueAsync(
-        League league,
+    Task ImportTeamsForSeasonAsync(
+        Season season,
+        int leagueExternalId,
         CancellationToken cancellationToken = default);
 }

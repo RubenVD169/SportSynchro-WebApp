@@ -13,14 +13,25 @@ public sealed class TeamRepository : ITeamRepository
         _db = db;
     }
 
-    public async Task<HashSet<int>> GetExistingExternalIdsForLeagueAsync(
-        int leagueId,
+    public async Task<Dictionary<int, Team>> GetByExternalIdsAsync(
+        IReadOnlyCollection<int> externalIds,
         CancellationToken cancellationToken = default)
     {
+        if (externalIds.Count == 0)
+            return [];
+
         return await _db.Teams
-            // .Where(t => t.LeagueId == leagueId)
-            .Select(t => t.ExternalId)
-            .ToHashSetAsync(cancellationToken);
+            .Where(t => externalIds.Contains(t.ExternalId))
+            .ToDictionaryAsync(
+                t => t.ExternalId,
+                cancellationToken);
+    }
+
+    public async Task AddAsync(
+        Team team,
+        CancellationToken cancellationToken = default)
+    {
+        await _db.Teams.AddAsync(team, cancellationToken);
     }
 
     public async Task AddRangeAsync(
@@ -37,18 +48,5 @@ public sealed class TeamRepository : ITeamRepository
         CancellationToken cancellationToken = default)
     {
         await _db.SaveChangesAsync(cancellationToken);
-    }
-    
-    public async Task<Dictionary<int, int>> GetTeamLookupForLeagueAsync(
-    int leagueId,
-    CancellationToken cancellationToken = default)
-    {
-        return await _db.Teams
-            // .Where(t => t.LeagueId == leagueId) //TODO
-            .Select(t => new { t.ExternalId, t.Id })
-            .ToDictionaryAsync(
-                x => x.ExternalId,
-                x => x.Id,
-                cancellationToken);
     }
 }
