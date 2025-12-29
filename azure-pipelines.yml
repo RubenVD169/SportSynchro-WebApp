@@ -3,6 +3,13 @@ pool:
   vmImage: ubuntu-latest 
 
 steps:
+# Install .Net SDK
+- task: UseDotNet@2
+  inputs:
+    packageType: 'sdk'
+    version: '10.0.101'
+    installationPath: '$(Agent.ToolsDirectory)/dotnet'
+
 # Build
 - task: DotNetCoreCLI@2
   displayName: Build Projects
@@ -10,11 +17,6 @@ steps:
     command: build 
     projects: '**/*.csproj'
     arguments: '--configuration $(buildConfiguration)'
-- task: UseDotNet@2
-  inputs:
-    packageType: 'sdk'
-    version: '10.0.101'
-    installationPath: '$(Agent.ToolsDirectory)/dotnet'
 
 # Test
 - task: DotNetCoreCLI@2 
