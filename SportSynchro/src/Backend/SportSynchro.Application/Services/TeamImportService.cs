@@ -54,8 +54,7 @@ public sealed class TeamImportService : ITeamImportService
             Team team = new(
                 externalId,
                 TeamName.Create(apiTeam.StrTeam),
-                apiTeam.StrCountry ?? "Unknown",
-                league.Id);
+                apiTeam.StrCountry ?? "Unknown");
 
             newTeams.Add(team);
         }

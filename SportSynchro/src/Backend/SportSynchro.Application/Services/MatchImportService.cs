@@ -29,8 +29,8 @@ public sealed class MatchImportService : IMatchImportService
         CancellationToken cancellationToken = default)
     {
         // Safety: matches require teams
-        if (!league.TeamsImported)
-            return null;
+        // if (!league.TeamsImported)
+        //     return null;
 
         // Load all teams for league (externalId -> teamId)
         Dictionary<int, int> teamLookup =
@@ -129,7 +129,7 @@ public sealed class MatchImportService : IMatchImportService
 
         match = new Match(
             externalId: dto.IdEvent,
-            leagueId: league.Id,
+            seasonId: 1, //TODO
             homeTeamId: homeTeamId,
             awayTeamId: awayTeamId,
             startTimeUtc: parsedStartUtc,

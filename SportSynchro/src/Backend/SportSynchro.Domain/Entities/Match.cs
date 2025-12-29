@@ -11,7 +11,7 @@ public sealed class Match
 
     public Match(
         int externalId,
-        int leagueId,
+        int seasonId,
         int homeTeamId,
         int awayTeamId,
         DateTime startTimeUtc,
@@ -24,14 +24,14 @@ public sealed class Match
         if (externalId <= 0)
             throw new MatchException("External match ID must be positive.");
 
-        if (leagueId <= 0)
-            throw new MatchException("League ID must be positive.");
+        if (seasonId <= 0)
+            throw new MatchException("Season ID must be positive.");
 
         if (homeTeamId <= 0 || awayTeamId <= 0)
             throw new MatchException("Team IDs must be positive.");
 
         ExternalId = externalId;
-        LeagueId = leagueId;
+        SeasonId = seasonId;
         HomeTeamId = homeTeamId;
         AwayTeamId = awayTeamId;
         StartTimeUtc = startTimeUtc;
@@ -46,7 +46,8 @@ public sealed class Match
     public int Id { get; private set; }
     public int ExternalId { get; private set; }
 
-    public int LeagueId { get; private set; }
+    public int SeasonId { get; private set; }
+
     public int HomeTeamId { get; private set; }
     public int AwayTeamId { get; private set; }
 

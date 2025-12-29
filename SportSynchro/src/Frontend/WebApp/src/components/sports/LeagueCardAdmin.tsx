@@ -21,7 +21,7 @@ export default function LeagueCardAdmin({
 
       <button
         onClick={() => onToggleVisibility(league.id, league.visible)}
-        className={`px-4 py-1.5 rounded text-white font-medium transition ${visibilityClasses}`}
+        className={`px-4 py-1.5 rounded text-white font-medium transition cursor-pointer ${visibilityClasses}`}
       >
         {league.visible ? "Shown" : "Hidden"}
       </button>

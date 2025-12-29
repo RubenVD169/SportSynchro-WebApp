@@ -18,7 +18,7 @@ public sealed class TeamRepository : ITeamRepository
         CancellationToken cancellationToken = default)
     {
         return await _db.Teams
-            .Where(t => t.LeagueId == leagueId)
+            // .Where(t => t.LeagueId == leagueId)
             .Select(t => t.ExternalId)
             .ToHashSetAsync(cancellationToken);
     }
@@ -44,7 +44,7 @@ public sealed class TeamRepository : ITeamRepository
     CancellationToken cancellationToken = default)
     {
         return await _db.Teams
-            .Where(t => t.LeagueId == leagueId)
+            // .Where(t => t.LeagueId == leagueId) //TODO
             .Select(t => new { t.ExternalId, t.Id })
             .ToDictionaryAsync(
                 x => x.ExternalId,

@@ -67,28 +67,28 @@ public sealed class LeagueService : ILeagueService
             await _leagueRepository.SaveChangesAsync(cancellationToken);
             return true;
         }
+        //TODO
+        // if (!league.TeamsImported)
+        // {
+        //     await _teamImportService.ImportTeamsForLeagueAsync(
+        //         league,
+        //         cancellationToken);
 
-        if (!league.TeamsImported)
-        {
-            await _teamImportService.ImportTeamsForLeagueAsync(
-                league,
-                cancellationToken);
+        //     league.MarkTeamsImported();
+        // }
 
-            league.MarkTeamsImported();
-        }
+        // if (!league.MatchesImported)
+        // {
+        //     DateTime? latestImportedUtc =
+        //         await _matchImportService.ImportMatchesForLeagueAsync(
+        //             league,
+        //             cancellationToken);
 
-        if (!league.MatchesImported)
-        {
-            DateTime? latestImportedUtc =
-                await _matchImportService.ImportMatchesForLeagueAsync(
-                    league,
-                    cancellationToken);
-
-            if (latestImportedUtc is not null)
-            {
-                league.MarkMatchesImportedUntil(latestImportedUtc.Value);
-            }
-        }
+        //     if (latestImportedUtc is not null)
+        //     {
+        //         league.MarkMatchesImportedUntil(latestImportedUtc.Value);
+        //     }
+        // }
 
         await _leagueRepository.SaveChangesAsync(cancellationToken);
         return true;

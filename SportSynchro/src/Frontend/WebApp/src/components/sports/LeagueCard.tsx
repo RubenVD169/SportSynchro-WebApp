@@ -55,7 +55,7 @@ export default function LeagueCard({
       </div>
 
       {!hasLiveAccess && (
-        <button className="mt-auto bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded font-medium">
+        <button className="mt-auto bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded font-medium cursor-pointer">
           Unlock full live access
         </button>
       )}

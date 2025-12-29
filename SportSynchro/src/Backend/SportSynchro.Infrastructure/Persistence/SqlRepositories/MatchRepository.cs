@@ -15,15 +15,15 @@ public sealed class MatchRepository : IMatchRepository
     }
 
     public async Task<Dictionary<int, Match>> GetByExternalIdsAsync(
-        int leagueId,
-        IReadOnlyCollection<int> externalIds,
-        CancellationToken cancellationToken = default)
+    int seasonId,
+    IReadOnlyCollection<int> externalIds,
+    CancellationToken cancellationToken = default)
     {
         if (externalIds.Count == 0)
             return [];
 
         return await _db.Matches
-            .Where(m => m.LeagueId == leagueId && externalIds.Contains(m.ExternalId))
+            .Where(m => m.SeasonId == seasonId && externalIds.Contains(m.ExternalId))
             .ToDictionaryAsync(
                 m => m.ExternalId,
                 cancellationToken);
@@ -43,16 +43,23 @@ public sealed class MatchRepository : IMatchRepository
     }
 
     public async Task<IReadOnlyList<MatchModel>> GetRecentFinishedMatchesByLeagueIdAsync(
-        int leagueId, CancellationToken cancellationToken)
+    int leagueId,
+    CancellationToken cancellationToken)
     {
         return await _db.Matches
             .AsNoTracking()
-            .Where(m => m.LeagueId == leagueId && m.Status.Value == "Finished")
+            .Where(m => m.Status.Value == "Finished")
+            .Join(
+                _db.Seasons.AsNoTracking(),
+                match => match.SeasonId,
+                season => season.Id,
+                (match, season) => new { match, season })
+            .Where(x => x.season.LeagueId == leagueId)
             .Join(
                 _db.Leagues.AsNoTracking(),
-                match => match.LeagueId,
+                ms => ms.season.LeagueId,
                 league => league.Id,
-                (match, league) => new { match, league })
+                (ms, league) => new { ms.match, league })
             .Join(
                 _db.Teams.AsNoTracking(),
                 ml => ml.match.HomeTeamId,
@@ -75,4 +82,5 @@ public sealed class MatchRepository : IMatchRepository
                 x.match.AwayScore ?? 0))
             .ToListAsync(cancellationToken);
     }
+
 }
