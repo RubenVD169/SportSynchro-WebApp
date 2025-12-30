@@ -68,4 +68,10 @@ public sealed class Match
 
     public void UpdateStatus(MatchStatus status)
         => _status = status ?? throw new MatchException("Match status cannot be null.");
+
+    public void Finish(int? homeScore, int? awayScore)
+    {
+        UpdateScore(homeScore, awayScore);
+        UpdateStatus(MatchStatus.Create("Finished"));
+    }
 }

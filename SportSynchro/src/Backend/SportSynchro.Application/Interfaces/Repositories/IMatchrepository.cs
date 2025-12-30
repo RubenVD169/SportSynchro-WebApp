@@ -9,7 +9,9 @@ public interface IMatchRepository
         int leagueId,
         IReadOnlyCollection<int> externalIds,
         CancellationToken cancellationToken = default);
-
+    Task<Match?> GetByExternalIdAsync(
+        int externalId,
+        CancellationToken cancellationToken = default);
     Task<HashSet<int>> GetExistingExternalIdsForSeasonAsync(
      int seasonId,
      IReadOnlyCollection<int> externalIds,

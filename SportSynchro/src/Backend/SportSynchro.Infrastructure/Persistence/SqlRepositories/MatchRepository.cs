@@ -94,4 +94,9 @@ public sealed class MatchRepository : IMatchRepository
             .ToListAsync(cancellationToken);
     }
 
+    public Task<Match?> GetByExternalIdAsync(int externalId, CancellationToken cancellationToken = default)
+    {
+        return _db.Matches
+            .FirstOrDefaultAsync(m => m.ExternalId == externalId, cancellationToken);
+    }
 }
