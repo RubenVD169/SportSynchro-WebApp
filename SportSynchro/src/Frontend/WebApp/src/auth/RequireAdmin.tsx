@@ -6,7 +6,7 @@ import { FullscreenLoader } from "../components/ui/FullscreenLoader";
 export default function RequireAdmin() {
   const { isAuthenticated, isLoading, user } = useAuth();
 
-  if (isLoading) return  <FullscreenLoader text="Loading..." />;
+  if (isLoading) return <FullscreenLoader text="Loading..." />;
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
@@ -14,8 +14,8 @@ export default function RequireAdmin() {
 
   const roles = user?.profile?.roles ?? user?.profile?.role;
   const isAdmin = Array.isArray(roles)
-    ? roles.includes("Admin")
-    : roles === "Admin";
+    ? roles.some(r => r.toLowerCase() === "admin")
+    : roles?.toString().toLowerCase() === "admin";
 
   if (!isAdmin) {
     return <Navigate to="/" replace />;

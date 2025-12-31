@@ -1,4 +1,3 @@
-using Duende.IdentityServer;
 using SportSynchro.IdentityServer.Data;
 using SportSynchro.IdentityServer.Models;
 using Microsoft.AspNetCore.Identity;
@@ -17,7 +16,7 @@ internal static class HostingExtensions
         builder.Services.AddRazorPages();
 
         builder.Services.Configure<DatabaseOptions>(
-            builder.Configuration.GetSection(nameof(DatabaseOptions)));
+            builder.Configuration.GetSection(DatabaseOptions.SectionName));
 
         builder.Services.Configure<FrontendOptions>(
             builder.Configuration.GetSection(nameof(FrontendOptions)));
@@ -30,7 +29,7 @@ internal static class HostingExtensions
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
                 DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-                options.UseSqlServer(dbOptions.DefaultConnection);
+                options.UseSqlServer(dbOptions.ConnectionString);
             });
 
         builder.Services.AddDbContext<ConfigurationDbContext>((sp, options) =>
@@ -38,7 +37,7 @@ internal static class HostingExtensions
                 DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
 
                 options.UseSqlServer(
-                    dbOptions.DefaultConnection,
+                    dbOptions.ConnectionString,
                     sql => sql.MigrationsAssembly(typeof(Program).Assembly.GetName().Name)
                 );
             });

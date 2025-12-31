@@ -23,7 +23,7 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 
 builder.Services.Configure<DatabaseOptions>(
-    builder.Configuration.GetSection(nameof(DatabaseOptions)));
+    builder.Configuration.GetSection(DatabaseOptions.SectionName));
 
 builder.Services.Configure<IdentityServerOptions>(
     builder.Configuration.GetSection(nameof(IdentityServerOptions)));
@@ -32,7 +32,7 @@ builder.Services.Configure<CorsOptions>(
     builder.Configuration.GetSection(nameof(CorsOptions)));
 
 builder.Services.Configure<TheSportsDbOptions>(
-    builder.Configuration.GetSection(nameof(TheSportsDbOptions)));
+    builder.Configuration.GetSection(TheSportsDbOptions.SectionName));
 
 builder.Services.Configure<SportsSeedingOptions>(
     builder.Configuration.GetSection(nameof(SportsSeedingOptions)));
