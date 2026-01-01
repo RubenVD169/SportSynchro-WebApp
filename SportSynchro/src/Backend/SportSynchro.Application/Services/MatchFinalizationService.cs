@@ -26,6 +26,7 @@ public sealed class MatchFinalizationService : IMatchFinalizationService
         {
             return;
         }
+        match.Finish(model.HomeScore, model.AwayScore);
 
         await _matches.SaveChangesAsync(ct);
     }

@@ -20,48 +20,49 @@ public sealed class LiveScoreIngestService
         SportsDbLiveScoreInput input,
         CancellationToken ct = default)
     {
-        LiveMatchDocument document = new()
+        bool isFinished = input.StrStatus == "FT";
+        string id = $"event-{input.IdEvent}";
+        string partitionKey = input.IdLeague;
+        
+        // Match is finished → check existing and notify if needed
+        if (isFinished)
         {
-            Id = $"event-{input.IdEvent}",
-            IdEvent = input.IdEvent,
-            IdLiveScore = input.IdLiveScore,
-            IdLeague = input.IdLeague,
+            LiveMatchDocument? existing =
+                await _repository.TryGetAsync(id, partitionKey, ct);
 
-            HomeTeamId = input.IdHomeTeam,
-            HomeTeamName = input.StrHomeTeam,
-            AwayTeamId = input.IdAwayTeam,
-            AwayTeamName = input.StrAwayTeam,
+            LiveMatchDocument document =
+                existing is null
+                    ? LiveMatchDocument.CreateFromSportsDb(input)
+                    : existing.WithUpdatedSnapshot(
+                        input,
+                        DetermineTtl(input.StrStatus));
 
-            HomeScore = input.IntHomeScore,
-            AwayScore = input.IntAwayScore,
+            if (!document.FinishedNotified)
+            {
+                await _sportSynchroApi.NotifyMatchFinishedAsync(
+                    new MatchFinishedRequest
+                    {
+                        EventId = input.IdEvent,
+                        HomeScore = int.TryParse(input.IntHomeScore, out int hs) ? hs : null,
+                        AwayScore = int.TryParse(input.IntAwayScore, out int aw) ? aw : null,
+                    },
+                    ct);
 
-            Status = input.StrStatus,
-            Progress = input.StrProgress,
-            UpdatedRaw = input.Updated,
+                document.FinishedNotified = true;
+            }
 
-            TimeToLiveSeconds = DetermineTtl(input.StrStatus),
-        };
-
-        if (input.StrStatus == "FT" && !document.FinishedNotified)
-        {
-            await _repository.UpsertAsync(document, ct); await _sportSynchroApi.NotifyMatchFinishedAsync(
-                 new MatchFinishedRequest
-                 {
-                     EventId = input.IdEvent,
-                     LeagueId = input.IdLeague,
-                     HomeTeamId = input.IdHomeTeam,
-                     AwayTeamId = input.IdAwayTeam,
-                     HomeScore = int.TryParse(input.IntHomeScore, out int homeScore) ? homeScore : null,
-                     AwayScore = int.TryParse(input.IntAwayScore, out int awayScore) ? awayScore : null,
-                     FinishedAtUtc = DateTime.UtcNow
-                 },
-                 ct);
-            document.FinishedNotified = true;
-
-            await _repository.UpsertAsync(document, ct); 
+            document.TimeToLiveSeconds = DetermineTtl(input.StrStatus);
+            await _repository.UpsertAsync(document, ct);
+            return;
         }
+
+        // Not FT → blind upsert
+        LiveMatchDocument liveDocument =
+            LiveMatchDocument.CreateFromSportsDb(input);
+
+        await _repository.UpsertAsync(liveDocument, ct);
     }
 
     private static int? DetermineTtl(string? status)
-        => status == "FT" ? 300 : null;
+        => status == "FT" ? 172_800 : null;
 }

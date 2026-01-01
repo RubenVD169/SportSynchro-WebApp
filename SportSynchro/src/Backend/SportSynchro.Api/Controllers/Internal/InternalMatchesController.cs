@@ -25,12 +25,8 @@ public sealed class InternalMatchesController : ControllerBase
     {
         MatchFinishedModel model = new(
             request.EventId,
-            request.LeagueId,
-            request.HomeTeamId,
-            request.AwayTeamId,
             request.HomeScore,
-            request.AwayScore,
-            request.FinishedAtUtc
+            request.AwayScore
         );
 
         await _service.HandleFinishedAsync(model, ct);

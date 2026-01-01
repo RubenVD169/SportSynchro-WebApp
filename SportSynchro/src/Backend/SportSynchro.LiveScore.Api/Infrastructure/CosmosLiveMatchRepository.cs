@@ -4,6 +4,7 @@ using SportSynchro.LiveScore.Api.Models;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using SportSynchro.LiveScore.Api.Options;
+using System.Net;
 
 namespace SportSynchro.LiveScore.Api.Infrastructure;
 
@@ -97,6 +98,28 @@ public sealed class CosmosLiveMatchRepository : ILiveMatchRepository
             return response.Resource;
         }
         catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<LiveMatchDocument?> TryGetAsync(
+    string id,
+    string partitionKey,
+    CancellationToken ct)
+    {
+        Container container = GetCosmosContainer();
+        try
+        {
+            ItemResponse<LiveMatchDocument> response =
+                await container.ReadItemAsync<LiveMatchDocument>(
+                    id,
+                    new PartitionKey(partitionKey),
+                    cancellationToken: ct);
+
+            return response.Resource;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }

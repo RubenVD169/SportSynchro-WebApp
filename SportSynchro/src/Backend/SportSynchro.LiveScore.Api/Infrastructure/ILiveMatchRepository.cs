@@ -11,4 +11,8 @@ public interface ILiveMatchRepository
 
     Task<LiveMatchDocument?>
         GetByEventAsync(string eventId, string leagueId, CancellationToken ct = default);
+    Task<LiveMatchDocument?> TryGetAsync(
+       string id,
+       string partitionKey,
+       CancellationToken ct);
 }
