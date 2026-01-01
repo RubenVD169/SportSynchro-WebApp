@@ -93,7 +93,7 @@ builder.Services
     .AddJwtBearer("Bearer", options =>
     {
         options.Authority = authOptions.Authority;
-        options.RequireHttpsMetadata = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development";
+        options.RequireHttpsMetadata = !builder.Environment.IsDevelopment();
         options.Audience = "sportsynchro.api";
 
         options.TokenValidationParameters = new TokenValidationParameters
@@ -108,7 +108,7 @@ builder.Services
     });
 
 builder.Services
-    .AddAuthentication()
+    .AddAuthentication("LiveScoreBearer")
     .AddJwtBearer("LiveScoreBearer", options =>
     {
         options.Authority = authOptions.Authority;
@@ -122,12 +122,6 @@ builder.Services
             ValidIssuer = authOptions.Authority
         };
     });
-
-builder.Services.PostConfigureAll<JwtBearerOptions>(opts =>
-{
-    Console.WriteLine($"[JwtBearer configured] Audience={opts.TokenValidationParameters?.ValidAudience}");
-});
-
 
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("AdminWrite", policy =>
