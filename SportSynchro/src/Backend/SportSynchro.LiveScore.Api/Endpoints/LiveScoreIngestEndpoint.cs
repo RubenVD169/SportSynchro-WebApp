@@ -11,7 +11,7 @@ public static class LiveScoreIngestEndpoints
             LiveScoreIngestService ingestService,
             CancellationToken ct) =>
         {
-            await ingestService.UpsertFromSportsDbAsync(input, ct);
+            await ingestService.UpsertFromSportsDbAsync([input], ct);
             return Results.Accepted();
         })
         .RequireAuthorization("LiveScoreRead");

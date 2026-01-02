@@ -5,10 +5,10 @@ namespace SportSynchro.Application.Interfaces.Repositories;
 
 public interface IMatchRepository
 {
-   Task<Dictionary<int, Match>> GetByExternalIdsAsync(
-        int leagueId,
-        IReadOnlyCollection<int> externalIds,
-        CancellationToken cancellationToken = default);
+    Task<List<Match>> GetByExternalIdsAsync(
+     IReadOnlyCollection<int> externalIds,
+     CancellationToken ct);
+
     Task<Match?> GetByExternalIdAsync(
         int externalId,
         CancellationToken cancellationToken = default);

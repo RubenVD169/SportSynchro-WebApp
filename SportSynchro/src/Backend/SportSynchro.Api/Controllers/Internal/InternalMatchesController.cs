@@ -7,7 +7,7 @@ using SportSynchro.Application.Models.Matches;
 namespace SportSynchro.Api.Controllers.Internal;
 
 [ApiController]
-[Route("internal/matches")]
+[Route("internal/matches/finished")]
 public sealed class InternalMatchesController : ControllerBase
 {
     private readonly IMatchFinalizationService _service;
@@ -17,7 +17,7 @@ public sealed class InternalMatchesController : ControllerBase
         _service = service;
     }
 
-    [HttpPost("finished")]
+    [HttpPost]
     [Authorize(Policy = "LiveScoreInternal")]
     public async Task<IActionResult> Finished(
         [FromBody] MatchFinishedRequest request,
@@ -32,4 +32,19 @@ public sealed class InternalMatchesController : ControllerBase
         await _service.HandleFinishedAsync(model, ct);
         return Ok();
     }
+
+    [HttpPost("batch")]
+    [Authorize(Policy = "LiveScoreInternal")]
+    public async Task<IActionResult> FinishedBatch(
+    [FromBody] MatchFinishedBatchRequest request,
+    CancellationToken ct)
+    {
+        await _service.HandleFinishedBatchAsync([.. request.Matches.Select(static request => new MatchFinishedModel(
+            request.EventId,
+            request.HomeScore,
+            request.AwayScore
+        ))], ct);
+        return Ok();
+    }
+
 }

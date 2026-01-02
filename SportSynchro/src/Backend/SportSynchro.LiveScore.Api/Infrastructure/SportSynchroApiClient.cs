@@ -5,11 +5,15 @@ using SportSynchro.LiveScore.Api.Models;
 using SportSynchro.LiveScore.Api.Options;
 
 namespace SportSynchro.LiveScore.Api.Infrastructure;
-
+/* A client for interacting with the SportSynchro API, handling authentication
+   and providing methods to notify about match events. With the least amount of db calls. */
 public sealed class SportSynchroApiClient
 {
     private readonly HttpClient _http;
     private readonly SportSynchroApiAuthOptions _auth;
+
+    private string? _cachedAccessToken;
+    private DateTimeOffset _accessTokenExpiresAt;
 
     public SportSynchroApiClient(
         HttpClient http,
@@ -19,46 +23,76 @@ public sealed class SportSynchroApiClient
         _auth = auth.Value;
     }
 
-    private async Task<string> GetAccessTokenAsync(CancellationToken ct)
+    //Token Handeling
+    private async Task<string> GetValidAccessTokenAsync(CancellationToken ct)
     {
-        DiscoveryDocumentResponse disco = await _http.GetDiscoveryDocumentAsync(
-            new DiscoveryDocumentRequest
-            {
-                Address = _auth.Authority,
-                Policy = { RequireHttps = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development" }
-            },
-            ct);
+        if (_cachedAccessToken is not null &&
+            _accessTokenExpiresAt > DateTimeOffset.UtcNow.AddMinutes(1))
+        {
+            return _cachedAccessToken;
+        }
+
+        DiscoveryDocumentResponse disco =
+            await _http.GetDiscoveryDocumentAsync(
+                new DiscoveryDocumentRequest
+                {
+                    Address = _auth.Authority,
+                    Policy =
+                    {
+                        RequireHttps =
+                            Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") != "Development"
+                    }
+                },
+                ct);
 
         if (disco.IsError)
             throw new InvalidOperationException(disco.Error);
 
-        TokenResponse token = await _http.RequestClientCredentialsTokenAsync(
-            new ClientCredentialsTokenRequest
-            {
-                Address = disco.TokenEndpoint,
-                ClientId = _auth.ClientId,
-                ClientSecret = _auth.ClientSecret,
-                Scope = _auth.Scope
-            },
-            ct);
+        TokenResponse token =
+            await _http.RequestClientCredentialsTokenAsync(
+                new ClientCredentialsTokenRequest
+                {
+                    Address = disco.TokenEndpoint,
+                    ClientId = _auth.ClientId,
+                    ClientSecret = _auth.ClientSecret,
+                    Scope = _auth.Scope
+                },
+                ct);
 
-        return token.IsError ? throw new InvalidOperationException(token.Error) 
-            : token.AccessToken ?? throw new InvalidOperationException("No access token received.");
+        if (token.IsError || token.AccessToken is null)
+            throw new InvalidOperationException(token.Error ?? "No access token received.");
+
+        _cachedAccessToken = token.AccessToken;
+        _accessTokenExpiresAt =
+            DateTimeOffset.UtcNow.AddSeconds(token.ExpiresIn);
+
+        return _cachedAccessToken;
     }
 
-    public async Task NotifyMatchFinishedAsync(
-        MatchFinishedRequest request,
+    private async Task AuthorizeAsync(CancellationToken ct)
+    {
+        string token = await GetValidAccessTokenAsync(ct);
+        _http.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue("Bearer", token);
+    }
+
+    // Batch Notify Matches Finished
+    public async Task NotifyMatchesFinishedBatchAsync(
+        IReadOnlyList<MatchFinishedRequest> matches,
         CancellationToken ct)
     {
-        string accessToken = await GetAccessTokenAsync(ct);
+        if (matches.Count == 0)
+        {
+            return;
+        }
 
-        _http.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", accessToken);
+        await AuthorizeAsync(ct);
 
-        HttpResponseMessage response = await _http.PostAsJsonAsync(
-            "/internal/matches/finished",
-            request,
-            ct);
+        HttpResponseMessage response =
+            await _http.PostAsJsonAsync(
+                "internal/matches/finished/batch",
+                new MatchFinishedBatchRequest(matches),
+                ct);
 
         response.EnsureSuccessStatusCode();
     }

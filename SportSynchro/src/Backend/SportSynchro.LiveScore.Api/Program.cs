@@ -22,7 +22,6 @@ builder.Services.Configure<SportSynchroApiClientOptions>(
 
 builder.Services.AddScoped<ILiveMatchRepository, CosmosLiveMatchRepository>();
 builder.Services.AddScoped<LiveScoreIngestService>();
-builder.Services.AddScoped<LiveScorePollerService>();
 
 builder.Services.AddHttpClient<SportSynchroApiClient>(client =>
 {

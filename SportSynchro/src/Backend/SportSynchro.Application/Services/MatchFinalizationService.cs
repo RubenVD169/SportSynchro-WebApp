@@ -30,4 +30,36 @@ public sealed class MatchFinalizationService : IMatchFinalizationService
 
         await _matches.SaveChangesAsync(ct);
     }
+
+    public async Task HandleFinishedBatchAsync(
+    IReadOnlyList<MatchFinishedModel> batch,
+    CancellationToken ct)
+    {
+        if (batch.Count == 0)
+            return;
+
+        int[] externalIds = [.. batch.Select(m => int.Parse(m.EventId))];
+
+        List<Match> matches =
+            await _matches.GetByExternalIdsAsync(externalIds, ct);
+
+        Dictionary<int, Match> lookup =
+            matches.ToDictionary(m => m.ExternalId);
+
+        foreach (MatchFinishedModel item in batch)
+        {
+            int externalId = int.Parse(item.EventId);
+
+            if (!lookup.TryGetValue(externalId, out Match? match))
+                continue;
+
+            if (match.Status.Value == "Finished")
+                continue;
+
+            match.Finish(item.HomeScore, item.AwayScore);
+        }
+
+        await _matches.SaveChangesAsync(ct);
+    }
+
 }

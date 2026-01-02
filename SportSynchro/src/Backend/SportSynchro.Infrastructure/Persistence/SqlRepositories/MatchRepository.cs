@@ -14,19 +14,13 @@ public sealed class MatchRepository : IMatchRepository
         _db = db;
     }
 
-    public async Task<Dictionary<int, Match>> GetByExternalIdsAsync(
-    int seasonId,
+    public Task<List<Match>> GetByExternalIdsAsync(
     IReadOnlyCollection<int> externalIds,
-    CancellationToken cancellationToken = default)
+    CancellationToken ct)
     {
-        if (externalIds.Count == 0)
-            return [];
-
-        return await _db.Matches
-            .Where(m => m.SeasonId == seasonId && externalIds.Contains(m.ExternalId))
-            .ToDictionaryAsync(
-                m => m.ExternalId,
-                cancellationToken);
+        return _db.Matches
+            .Where(m => externalIds.Contains(m.ExternalId))
+            .ToListAsync(ct);
     }
 
     public async Task<HashSet<int>> GetExistingExternalIdsForSeasonAsync(

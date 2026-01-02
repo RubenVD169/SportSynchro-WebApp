@@ -1,29 +1,30 @@
 using SportSynchro.LiveScore.Api.Infrastructure;
+using SportSynchro.LiveScore.Api.Models;
 
 namespace SportSynchro.LiveScore.Api.Application;
 
 public sealed class LiveScorePollerService : BackgroundService
 {
-    private readonly TheSportsDbLiveScoreClient _sportsDb;
-    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<LiveScorePollerService> _logger;
-
-    private static readonly TimeSpan Interval = TimeSpan.FromSeconds(120);
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly TheSportsDbLiveScoreClient _sportsDb;
+    private readonly SportSynchroApiClient _sportSynchroApi;
+    private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(120);
 
     public LiveScorePollerService(
-        TheSportsDbLiveScoreClient sportsDb,
+        ILogger<LiveScorePollerService> logger,
         IServiceScopeFactory scopeFactory,
-        ILogger<LiveScorePollerService> logger)
+        TheSportsDbLiveScoreClient sportsDb,
+        SportSynchroApiClient sportSynchroApi)
     {
-        _sportsDb = sportsDb;
-        _scopeFactory = scopeFactory;
         _logger = logger;
+        _scopeFactory = scopeFactory;
+        _sportsDb = sportsDb;
+        _sportSynchroApi = sportSynchroApi;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("LiveScore poller started.");
-
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -31,27 +32,29 @@ public sealed class LiveScorePollerService : BackgroundService
                 IReadOnlyList<SportsDbLiveScoreInput> liveMatches =
                     await _sportsDb.GetAllLiveScoresAsync(stoppingToken);
 
-                using IServiceScope scope =
-                    _scopeFactory.CreateScope();
+                using IServiceScope scope = _scopeFactory.CreateScope();
 
-                LiveScoreIngestService ingest =
+                LiveScoreIngestService ingestService =
                     scope.ServiceProvider.GetRequiredService<LiveScoreIngestService>();
 
-                foreach (SportsDbLiveScoreInput match in liveMatches)
+                IReadOnlyList<MatchFinishedRequest> finishedBatch =
+                    await ingestService.UpsertFromSportsDbAsync(
+                        liveMatches,
+                        stoppingToken);
+
+                if (finishedBatch.Count > 0)
                 {
-                    await ingest.UpsertFromSportsDbAsync(match, stoppingToken);
+                    await _sportSynchroApi.NotifyMatchesFinishedBatchAsync(
+                        finishedBatch,
+                        stoppingToken);
                 }
-            }
-            catch (OperationCanceledException)
-            {
-                // normal shutdown
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "LiveScore poller failed.");
+                _logger.LogError(ex, "LiveScore poller failed");
             }
 
-            await Task.Delay(Interval, stoppingToken);
+            await Task.Delay(_pollInterval, stoppingToken);
         }
     }
 }
