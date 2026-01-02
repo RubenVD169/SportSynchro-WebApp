@@ -20,7 +20,7 @@ public sealed class LiveScoreIngestService
 
         foreach (SportsDbLiveScoreInput input in inputs)
         {
-            bool isFinished = input.StrStatus == "FT";
+            bool isFinished = input.StrStatus is "FT" or "AOT";
             string id = $"event-{input.IdEvent}";
             string partitionKey = input.IdLeague;
 
@@ -64,5 +64,5 @@ public sealed class LiveScoreIngestService
     }
 
     private static int? DetermineTtl(string? status)
-        => status == "FT" ? 172_800 : null;
+        => status is "FT" or "AOT" ? 172_800 : null;
 }
