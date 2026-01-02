@@ -1,4 +1,7 @@
 import useRecentMatches from "../../hooks/useRecentMatches";
+import { useState } from "react";
+import { createCheckoutSession } from "../../services/stripeService";
+import { useNavigate, useParams } from "react-router-dom";
 
 interface LeagueCardProps {
   league: League;
@@ -9,10 +12,31 @@ export default function LeagueCard({
   league,
   hasLiveAccess,
 }: LeagueCardProps) {
+  const navigate = useNavigate();
   const { matches, loading } = useRecentMatches(league.id);
+  const [redirecting, setRedirecting] = useState(false);
+  const sportId = useParams().id;
+
+  async function handleUnlockClick() {
+    try {
+      setRedirecting(true);
+
+      const { url } = await createCheckoutSession();
+
+      window.location.href = url;
+    } catch (err) {
+      console.error("Failed to start Stripe checkout", err);
+      setRedirecting(false);
+    }
+  }
+
+  function handleCardClick() {
+    navigate(`/sports/${sportId}/${league.id}`);
+  }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 shadow flex flex-col gap-4">
+    <div className="bg-gray-800 rounded-lg p-4 shadow flex flex-col gap-4 cursor-pointer" 
+      onClick={hasLiveAccess ? handleCardClick : handleUnlockClick}>
       <h2 className="text-xl font-semibold text-white">{league.name}</h2>
 
       <div>
@@ -55,8 +79,12 @@ export default function LeagueCard({
       </div>
 
       {!hasLiveAccess && (
-        <button className="mt-auto bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded font-medium cursor-pointer">
-          Unlock full live access
+        <button
+          onClick={handleUnlockClick}
+          disabled={redirecting}
+          className="mt-auto bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white py-2 rounded font-medium cursor-pointer"
+        >
+          {redirecting ? "Redirecting..." : "Unlock full live access"}
         </button>
       )}
     </div>

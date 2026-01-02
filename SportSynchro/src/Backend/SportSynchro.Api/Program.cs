@@ -16,6 +16,8 @@ using SportSynchro.Infrastructure.External.TheSportsDb;
 using SportSynchro.Infrastructure.Persistence;
 using SportSynchro.Infrastructure.Persistence.Seeding;
 using SportSynchro.Infrastructure.Persistence.SqlRepositories;
+using Stripe;
+using SubscriptionService = SportSynchro.Application.Services.SubscriptionService;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -41,6 +43,13 @@ builder.Services.Configure<LiveScoreAuthOptions>(
 
 builder.Services.Configure<LiveScoreApiOptions>(
     builder.Configuration.GetSection(LiveScoreApiOptions.SectionName));
+
+//Stripe Configuration
+builder.Services.Configure<StripeOptions>(
+    builder.Configuration.GetSection(StripeOptions.SectionName));
+//stripe services
+builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<ProductService>();
 
 builder.Services.AddDbContext<SportSynchroDbContext>((sp, options) =>
 {
@@ -74,6 +83,7 @@ builder.Services.AddScoped<IMatchImportService, MatchImportService>();
 builder.Services.AddScoped<ISportService, SportService>();
 builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IMatchFinalizationService, MatchFinalizationService>();
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 
 builder.Services.AddScoped<ILeagueRepository, LeagueRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
@@ -81,6 +91,7 @@ builder.Services.AddScoped<IMatchRepository, MatchRepository>();
 builder.Services.AddScoped<ISportRepository, SportRepository>();
 builder.Services.AddScoped<ISeasonRepository, SeasonRepository>();
 builder.Services.AddScoped<ISeasonTeamRepository, SeasonTeamRepository>();
+builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 
 // Add authentication and authorization
 IdentityServerOptions authOptions = builder.Configuration
