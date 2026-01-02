@@ -67,6 +67,13 @@ internal static class HostingExtensions
         builder.Services.AddControllers();
 
         builder.Services.AddMemoryCache();
+
+        DatabaseOptions dbOptions =
+            builder.Configuration
+                .GetSection(DatabaseOptions.SectionName)
+                .Get<DatabaseOptions>()
+            ?? throw new InvalidOperationException("DatabaseOptions not configured");
+
         builder.Services
             .AddIdentityServer(options =>
             {
@@ -74,14 +81,22 @@ internal static class HostingExtensions
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseSuccessEvents = true;
-
-                // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
                 options.EmitStaticAudienceClaim = true;
             })
             .AddConfigurationStore()
             .AddAspNetIdentity<ApplicationUser>()
             .AddProfileService<ProfileService>()
-            .AddInMemoryCaching();            
+            .AddInMemoryCaching()
+            .AddOperationalStore(options =>
+            {
+                options.ConfigureDbContext = b =>
+                    b.UseSqlServer(
+                        dbOptions.ConnectionString,
+                        sql => sql.MigrationsAssembly(
+                            typeof(Program).Assembly.GetName().Name
+                        )
+                    );
+            });
 
         builder.Services.AddAuthentication();
 
