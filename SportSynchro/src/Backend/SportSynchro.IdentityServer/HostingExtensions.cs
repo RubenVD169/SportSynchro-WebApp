@@ -24,8 +24,6 @@ internal static class HostingExtensions
         builder.Services.Configure<CorsOptions>(
             builder.Configuration.GetSection(nameof(CorsOptions)));
 
-
-
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
                 DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
@@ -68,6 +66,7 @@ internal static class HostingExtensions
 
         builder.Services.AddControllers();
 
+        builder.Services.AddMemoryCache();
         builder.Services
             .AddIdentityServer(options =>
             {
@@ -81,7 +80,8 @@ internal static class HostingExtensions
             })
             .AddConfigurationStore()
             .AddAspNetIdentity<ApplicationUser>()
-            .AddProfileService<ProfileService>();
+            .AddProfileService<ProfileService>()
+            .AddInMemoryCaching();            
 
         builder.Services.AddAuthentication();
 
