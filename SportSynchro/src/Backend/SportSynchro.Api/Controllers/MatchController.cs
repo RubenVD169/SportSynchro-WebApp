@@ -18,7 +18,7 @@ public sealed class MatchController : ControllerBase
 
     [Authorize(policy: "UserRead")]
     [HttpGet ("{leagueId:int}")]
-    public async Task<IActionResult> GetMatches(
+    public async Task<IActionResult> GetRecentMatches(
         [FromRoute] int leagueId, 
         CancellationToken cancellationToken
         )
@@ -30,6 +30,22 @@ public sealed class MatchController : ControllerBase
         if (response.Count == 0)
             return NotFound();
         
+        return Ok(response);
+    }
+
+    [Authorize(policy: "UserRead")]
+    [HttpGet("schedule/{leagueId:int}")]
+    public async Task<IActionResult> GetScheduledMatches(
+        [FromRoute] int leagueId,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<MatchModel> matches =
+            await _matchService.GetScheduledMatchesByLeagueIdAsync(leagueId, cancellationToken);
+
+        IReadOnlyList<MatchResponseContract> response = matches.ToResponseContractList();
+        if (response.Count == 0)
+            return NotFound();
+
         return Ok(response);
     }
 }

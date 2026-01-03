@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
 using SportSynchro.LiveScore.Api.Application;
 using SportSynchro.LiveScore.Api.Endpoints;
 using SportSynchro.LiveScore.Api.Infrastructure;
@@ -44,43 +43,7 @@ builder.Services.AddHttpClient<TheSportsDbLiveScoreClient>(
 
 builder.Services.AddHostedService<LiveScorePollerService>();
 
-IdentityServerOptions authOptions = builder.Configuration
-    .GetSection(nameof(IdentityServerOptions))
-    .Get<IdentityServerOptions>()!;
-
-builder.Services
-    .AddAuthentication("Bearer")
-    .AddJwtBearer("Bearer", options =>
-    {
-        options.Authority = authOptions.Authority;
-        options.RequireHttpsMetadata = builder.Environment.IsDevelopment() == false; 
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = true,
-            ValidAudience = authOptions.Audience,
-
-            ValidateIssuer = true,
-            ValidIssuer = authOptions.Authority
-        };
-    });
-
-
-builder.Services.AddAuthorizationBuilder()
-    .AddPolicy("LiveScoreRead", policy =>
-    {
-        policy.RequireAuthenticatedUser();
-        policy.RequireClaim("scope", "sportsynchro.livescore.read");
-    });
-
-builder.Services.AddHttpClient<SportSynchroApiClient>(client =>
-{
-    client.BaseAddress = new Uri(builder.Configuration["SportSynchroApiClient:BaseUrl"]!);
-});
-
 WebApplication app = builder.Build();
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapLiveScoreEndpoints();
 app.MapLiveScoreIngestEndpoints();

@@ -7,5 +7,6 @@ public sealed record MatchModel(
     string HomeTeam,
     string AwayTeam,
     int HomeScore,
-    int AwayScore
+    int AwayScore,
+    string? Status
 );

@@ -23,7 +23,7 @@ public static class Config
         {
             new ApiScope("sportsynchro.api.read", "Read access to SportSynchro API", new[] { JwtClaimTypes.Role }),
             new ApiScope("sportsynchro.api.write", "Write access to SportSynchro API", new[] { JwtClaimTypes.Role }),
-            new ApiScope("sportsynchro.livescore.read", "Read access to LiveScore API")
+            new ApiScope("sportsynchro.livescore.read", "Read access to LiveScore API"){Required = true}
         };
 
     public static IEnumerable<ApiResource> ApiResources =>

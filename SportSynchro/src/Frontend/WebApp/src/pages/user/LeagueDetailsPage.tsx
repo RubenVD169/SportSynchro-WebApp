@@ -1,6 +1,7 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
-import useRecentMatches from "../../hooks/useRecentMatches";
+import MatchCard from "../../components/matches/MatchCard";
+import useLeagueSchedule from "../../hooks/useLeagueSchedule";
 // later: useLiveMatches
 
 export default function LeagueDetailsPage() {
@@ -8,9 +9,11 @@ export default function LeagueDetailsPage() {
         leagueId: string;
     }>();
 
-    const [activeTab, setActiveTab] = useState<"recent" | "live">("recent");
+    const [activeTab, setActiveTab] = useState<"schedule" | "live">("schedule");
 
-    const { matches, loading } = useRecentMatches(Number(leagueId));
+    const { matches, loading } = useLeagueSchedule(Number(leagueId));
+
+    
 
     return (
         <div className="p-6 max-w-5xl mx-auto">
@@ -24,9 +27,9 @@ export default function LeagueDetailsPage() {
             </div>
             <div className="flex gap-2 mb-6">
                 <button
-                    onClick={() => setActiveTab("recent")}
+                    onClick={() => setActiveTab("schedule")}
                     className={`px-4 py-2 rounded text-sm font-medium
-                    ${activeTab === "recent"
+                    ${activeTab === "schedule"
                             ? "bg-indigo-600 text-white"
                             : "bg-gray-800 text-gray-400 hover:text-white"
                         }`}
@@ -45,34 +48,22 @@ export default function LeagueDetailsPage() {
                     Live matches
                 </button>
             </div>
-            {activeTab === "recent" && (
-                <div className="bg-gray-800 rounded-lg p-4">
+            {activeTab === "schedule" && (
+                <div className="space-y-3">
                     {loading ? (
                         <p className="text-sm text-gray-500">Loading matches…</p>
                     ) : matches.length === 0 ? (
                         <p className="text-sm text-gray-500">
-                            No recent matches available.
+                            No schedule available.
                         </p>
                     ) : (
-                        <ul className="divide-y divide-gray-700">
-                            {matches.map((m) => (
-                                <li
-                                    key={m.id}
-                                    className="py-3 flex items-center justify-between"
-                                >
-                                    <div className="text-sm text-gray-300">
-                                        {m.homeTeam} vs {m.awayTeam}
-                                    </div>
-
-                                    <div className="text-sm font-medium text-white">
-                                        {m.homeScore} – {m.awayScore}
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                        matches.map((m) => (
+                            <MatchCard key={m.id} match={m} />
+                        ))
                     )}
                 </div>
             )}
+
             {activeTab === "live" && (
                 <div className="bg-gray-800 rounded-lg p-4">
                     <div className="flex items-center justify-center h-32">
@@ -85,3 +76,4 @@ export default function LeagueDetailsPage() {
         </div>
     );
 }
+

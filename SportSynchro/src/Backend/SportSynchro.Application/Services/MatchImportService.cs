@@ -119,7 +119,9 @@ public sealed class MatchImportService : IMatchImportService
             homeTeamId: homeTeamId,
             awayTeamId: awayTeamId,
             startTimeUtc: parsedStartUtc,
-            status: status);
+            status: status,
+            homeScore: dto.IntHomeScore,
+            awayScore: dto.IntAwayScore);
 
         startUtc = parsedStartUtc;
         return true;

@@ -19,4 +19,5 @@ interface Match {
   homeScore: number;
   awayScore: number;
   matchDate: string; // ISO date string
+  status: "Not Started" | "Finished";
 }

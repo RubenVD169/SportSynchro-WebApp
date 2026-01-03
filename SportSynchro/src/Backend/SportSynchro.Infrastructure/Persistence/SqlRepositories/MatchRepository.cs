@@ -19,6 +19,7 @@ public sealed class MatchRepository : IMatchRepository
     CancellationToken ct)
     {
         return _db.Matches
+            .AsNoTracking()
             .Where(m => externalIds.Contains(m.ExternalId))
             .ToListAsync(ct);
     }
@@ -29,6 +30,7 @@ public sealed class MatchRepository : IMatchRepository
     CancellationToken cancellationToken = default)
     {
         return await _db.Matches
+            .AsNoTracking()
             .Where(m => m.SeasonId == seasonId && externalIds.Contains(m.ExternalId))
             .Select(m => m.ExternalId)
             .ToHashSetAsync(cancellationToken);
@@ -51,46 +53,54 @@ public sealed class MatchRepository : IMatchRepository
     int leagueId,
     CancellationToken cancellationToken)
     {
-        return await _db.Matches
-            .AsNoTracking()
-            .Where(m => m.Status.Value == "Finished")
-            .Join(
-                _db.Seasons.AsNoTracking(),
-                match => match.SeasonId,
-                season => season.Id,
-                (match, season) => new { match, season })
-            .Where(x => x.season.LeagueId == leagueId)
-            .Join(
-                _db.Leagues.AsNoTracking(),
-                ms => ms.season.LeagueId,
-                league => league.Id,
-                (ms, league) => new { ms.match, league })
-            .Join(
-                _db.Teams.AsNoTracking(),
-                ml => ml.match.HomeTeamId,
-                homeTeam => homeTeam.Id,
-                (ml, homeTeam) => new { ml.match, ml.league, homeTeam })
-            .Join(
-                _db.Teams.AsNoTracking(),
-                mlh => mlh.match.AwayTeamId,
-                awayTeam => awayTeam.Id,
-                (mlh, awayTeam) => new { mlh.match, mlh.league, mlh.homeTeam, awayTeam })
-            .OrderByDescending(x => x.match.StartTimeUtc)
-            .Take(10)
-            .Select(x => new MatchModel(
-                x.match.Id,
-                x.league.Name.Value,
-                x.match.StartTimeUtc,
-                x.homeTeam.Name.Value,
-                x.awayTeam.Name.Value,
-                x.match.HomeScore ?? 0,
-                x.match.AwayScore ?? 0))
-            .ToListAsync(cancellationToken);
+        return await (
+            from m in _db.Matches.AsNoTracking()
+            join s in _db.Seasons on m.SeasonId equals s.Id
+            join l in _db.Leagues on s.LeagueId equals l.Id
+            join ht in _db.Teams on m.HomeTeamId equals ht.Id
+            join at in _db.Teams on m.AwayTeamId equals at.Id
+            where m.Status.Value == "Finished"
+                && s.LeagueId == leagueId
+            orderby m.StartTimeUtc descending
+            select new MatchModel(
+                m.Id,
+                l.Name.Value,
+                m.StartTimeUtc,
+                ht.Name.Value,
+                at.Name.Value,
+                m.HomeScore ?? 0,
+                m.AwayScore ?? 0,
+                m.Status.Value)
+        )
+        .Take(10)
+        .ToListAsync(cancellationToken);
     }
 
     public Task<Match?> GetByExternalIdAsync(int externalId, CancellationToken cancellationToken = default)
     {
         return _db.Matches
             .FirstOrDefaultAsync(m => m.ExternalId == externalId, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<MatchModel>> GetScheduledMatchesByLeagueIdAsync(int leagueId, CancellationToken cancellationToken)
+    {
+        return await (
+            from m in _db.Matches.AsNoTracking()
+            join s in _db.Seasons on m.SeasonId equals s.Id
+            join l in _db.Leagues on s.LeagueId equals l.Id
+            join ht in _db.Teams on m.HomeTeamId equals ht.Id
+            join at in _db.Teams on m.AwayTeamId equals at.Id
+            where s.LeagueId == leagueId
+            orderby m.StartTimeUtc
+            select new MatchModel(
+                m.Id,
+                l.Name.Value,
+                m.StartTimeUtc,
+                ht.Name.Value,
+                at.Name.Value,
+                m.HomeScore ?? 0,
+                m.AwayScore ?? 0
+                ,m.Status.Value)
+        ).ToListAsync(cancellationToken);
     }
 }

@@ -68,7 +68,7 @@ builder.Services.AddHttpClient<ITheSportsDbRepository, TheSportsDbRepository>(
 
 builder.Services.AddHttpClient<LiveScoreClient>((sp, client) =>
 {
-    var api = sp.GetRequiredService<IOptions<LiveScoreApiOptions>>().Value;
+    LiveScoreApiOptions api = sp.GetRequiredService<IOptions<LiveScoreApiOptions>>().Value;
     client.BaseAddress = new Uri(api.BaseUrl);
 });
 

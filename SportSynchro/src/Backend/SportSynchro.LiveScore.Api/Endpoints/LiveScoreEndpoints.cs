@@ -14,8 +14,7 @@ public static class LiveScoreEndpoints
         {
             IReadOnlyList<LiveMatchDocument> matches = await repository.GetByLeagueAsync(leagueId, ct);
             return Results.Ok(matches);
-        })
-        .RequireAuthorization("LiveScoreRead");
+        });
 
         app.MapGet("/live/event/{leagueId}/{eventId}", async (
             string eventId,
@@ -28,7 +27,6 @@ public static class LiveScoreEndpoints
             return match is null
                 ? Results.NotFound()
                 : Results.Ok(match);
-        })
-        .RequireAuthorization("LiveScoreRead");
+        });
     }
 }

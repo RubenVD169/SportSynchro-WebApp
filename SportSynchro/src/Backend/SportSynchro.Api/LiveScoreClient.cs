@@ -1,7 +1,6 @@
 using System.Net.Http.Headers;
 using Duende.IdentityModel.Client;
 using Microsoft.Extensions.Options;
-using SportSynchro.Api.Contracts.LiveScore.Requests;
 using SportSynchro.Api.Options;
 
 namespace SportSynchro.Api;
@@ -68,19 +67,4 @@ public sealed class LiveScoreClient
 
         return await response.Content.ReadAsStringAsync(ct);
     }
-
-    public async Task NotifyFinishedAsync(
-    MatchFinishedRequest payload,
-    CancellationToken ct)
-    {
-        string accessToken = await GetAccessTokenAsync(ct);
-        _http.DefaultRequestHeaders.Authorization =
-            new AuthenticationHeaderValue("Bearer", accessToken);
-
-        HttpResponseMessage res = await _http.PostAsJsonAsync(
-            "/internal/matches/finished", payload, ct);
-
-        res.EnsureSuccessStatusCode();
-    }
-
 }
