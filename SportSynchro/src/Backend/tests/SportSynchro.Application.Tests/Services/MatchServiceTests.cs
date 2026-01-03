@@ -28,7 +28,8 @@ public sealed class MatchServiceTests
                 HomeTeam: "Team A",
                 AwayTeam: "Team B",
                 HomeScore: 2,
-                AwayScore: 1),
+                AwayScore: 1,
+                Status: "Finished"),
 
             new MatchModel(
                 Id: 2,
@@ -37,7 +38,8 @@ public sealed class MatchServiceTests
                 HomeTeam: "Team C",
                 AwayTeam: "Team D",
                 HomeScore: 0,
-                AwayScore: 0)
+                AwayScore: 0,
+                Status: "Finished")
         };
 
         var repo = new Mock<IMatchRepository>(MockBehavior.Strict);

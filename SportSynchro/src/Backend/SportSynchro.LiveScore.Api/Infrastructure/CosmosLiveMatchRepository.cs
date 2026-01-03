@@ -97,7 +97,7 @@ public sealed class CosmosLiveMatchRepository : ILiveMatchRepository
 
             return response.Resource;
         }
-        catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return null;
         }

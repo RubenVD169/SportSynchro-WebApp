@@ -1,6 +1,8 @@
 using SportSynchro.Api.Contracts.Match.Responses;
 using SportSynchro.Application.Models.Matches;
 
+namespace SportSynchro.Api.Mapping.Matches;
+
 public static class MatchMappingExtensions
 {
     public static MatchResponseContract 

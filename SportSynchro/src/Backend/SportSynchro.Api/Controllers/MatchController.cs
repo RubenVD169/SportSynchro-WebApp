@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SportSynchro.Api.Contracts.Match.Responses;
+using SportSynchro.Api.Mapping.Matches;
 using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Application.Models.Matches;
 
