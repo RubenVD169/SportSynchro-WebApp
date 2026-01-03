@@ -9,6 +9,8 @@ public sealed class SportSynchroDbContext(DbContextOptions<SportSynchroDbContext
     public DbSet<Sport> Sports => Set<Sport>();
     public DbSet<Team> Teams => Set<Team>();
     public DbSet<Match> Matches => Set<Match>();
+    public DbSet<Season> Seasons => Set<Season>();
+    public DbSet<SeasonTeam> SeasonTeams => Set<SeasonTeam>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
     public DbSet<UserFavorite> UserFavorites => Set<UserFavorite>();
 

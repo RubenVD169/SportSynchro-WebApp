@@ -23,6 +23,7 @@ public static class Config
         {
             new ApiScope("sportsynchro.api.read", "Read access to SportSynchro API", new[] { JwtClaimTypes.Role }),
             new ApiScope("sportsynchro.api.write", "Write access to SportSynchro API", new[] { JwtClaimTypes.Role }),
+            new ApiScope("sportsynchro.livescore.read", "Read access to LiveScore API"){Required = true}
         };
 
     public static IEnumerable<ApiResource> ApiResources =>
@@ -39,6 +40,13 @@ public static class Config
             {
                 JwtClaimTypes.Role
             }
+        },
+        new ApiResource("sportsynchro.livescore.api", "SportSynchro LiveScore API")
+        {
+            Scopes =
+            {
+                "sportsynchro.livescore.read"
+            }
         }
     };
 
@@ -54,7 +62,7 @@ public static class Config
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
                 ClientSecrets = { new Secret("511536EF-F270-4058-80CA-1C89C192F69A".Sha256()) },
 
-                AllowedScopes = { "sportsynchro.api.read", "sportsynchro.api.write" }
+                AllowedScopes = { "sportsynchro.api.read", "sportsynchro.api.write", "sportsynchro.livescore.read" }
             },
             // frontend client using code flow 
             new Client {
@@ -75,6 +83,23 @@ public static class Config
                 PostLogoutRedirectUris = { "http://localhost:5173/" },
                 AllowedCorsOrigins = ["http://localhost:5173"],
                 AllowAccessTokensViaBrowser = true
-            }
+            },
+            new Client
+            {
+                ClientId = "sportsynchro.main.livescore",
+                ClientName = "SportSynchro Main API → LiveScore API",
+
+                AllowedGrantTypes = GrantTypes.ClientCredentials,
+
+                ClientSecrets =
+                {
+                    new Secret("livescore-internal-secret".Sha256())
+                },
+
+                AllowedScopes =
+                {
+                    "sportsynchro.livescore.read"
+                }
+            },
         };
 }

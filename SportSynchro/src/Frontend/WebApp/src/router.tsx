@@ -10,6 +10,9 @@ import AdminPreviewPage from "./pages/admin/AdminPreviewPage";
 import AuthCallback from "./auth/AuthCallBack";
 import { RegisterPage } from "./pages/auth/RegisterPage";
 import LogoutCallback from "./auth/LogoutCallBack";
+import PaymentSuccessPage from "./pages/user/PaymentSuccesPage";
+import PaymentCancelPage from "./pages/user/PaymentCancelPage";
+import LeagueDetailsPage from "./pages/user/LeagueDetailsPage";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +29,9 @@ export const router = createBrowserRouter([
     children: [
       { path: "/", element: <HomePage /> },
       { path: "/sports/:id", element: <SportDetailsPage /> },
+      { path: "/payment/success", element: <PaymentSuccessPage /> },
+      { path: "/payment/cancel", element: <PaymentCancelPage /> },
+      { path: "/sports/:sportId/:leagueId", element: <LeagueDetailsPage /> }
     ],
   },
   {

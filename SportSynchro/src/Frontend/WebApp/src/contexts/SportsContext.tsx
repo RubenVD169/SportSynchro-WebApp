@@ -6,8 +6,9 @@ import {
 } from "react";
 
 import {
-  fetchSports,
+  fetchAdminSports,
   updateSportVisibility,
+  fetchUserSports
 } from "../services/sportService";
 
 interface SportsContextType {
@@ -20,6 +21,7 @@ interface SportsContextType {
   toggleSportVisibility: (id: number, current: boolean) => Promise<void>;
 
   refreshSports: () => Promise<void>;
+  refreshUserSports: () => Promise<void>;
 }
 
 const SportsContext = createContext<SportsContextType | undefined>(undefined);
@@ -33,7 +35,17 @@ export function SportsProvider({ children }: { children: ReactNode }) {
   const refreshSports = useCallback(async () => {
     setLoadingSports(true);
     try {
-      const data = await fetchSports();
+      const data = await fetchAdminSports();
+      setSports(data);
+    } finally {
+      setLoadingSports(false);
+    }
+  }, []);
+
+  const refreshUserSports = useCallback(async () => {
+    setLoadingSports(true);
+    try {
+      const data = await fetchUserSports();
       setSports(data);
     } finally {
       setLoadingSports(false);
@@ -73,6 +85,7 @@ export function SportsProvider({ children }: { children: ReactNode }) {
         selectSport,
         toggleSportVisibility,
         refreshSports,
+        refreshUserSports,
       }}
     >
       {children}

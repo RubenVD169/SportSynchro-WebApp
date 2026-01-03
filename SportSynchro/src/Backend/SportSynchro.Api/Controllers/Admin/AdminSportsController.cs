@@ -6,22 +6,22 @@ using SportSynchro.Api.Mapping.Sports;
 using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Application.Models.Sports;
 
-namespace SportSynchro.Api.Controllers;
+namespace SportSynchro.Api.Controllers.Admin;
 
 [ApiController]
-[Route("api/sports")]
-public sealed class SportsController : ControllerBase
+[Route("api/admin/sports")]
+public sealed class AdminSportsController : ControllerBase
 {
     private readonly ISportService _sportService;
 
-    public SportsController(ISportService sportService)
+    public AdminSportsController(ISportService sportService)
     {
         _sportService = sportService;
     }
 
     [HttpGet]
     [Authorize(Policy = "AdminRead")]
-    public async Task<IActionResult> GetAll(
+    public async Task<IActionResult> GetAllForAdmin(
         CancellationToken cancellationToken)
     {
         IReadOnlyList<SportAdminModel> models = await _sportService

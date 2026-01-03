@@ -28,6 +28,18 @@ public sealed class SportService : ISportService
             ))];
     }
 
+    public async Task<IReadOnlyList<SportUserModel>> GetAllForUserAsync(CancellationToken cancellationToken)
+    {
+        IReadOnlyList<Sport> sports = await _sportRepository
+            .GetAllVisibleAsync(cancellationToken);
+        
+        return [.. sports
+            .Select(s => new SportUserModel(
+                s.Id,
+                s.Name.Value
+            ))];
+    }
+
     public async Task<bool> SetSportVisibilityAsync(
         int sportId,
         bool isVisible,

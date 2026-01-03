@@ -20,4 +20,19 @@ public static class SportMappingExtensions
     {
         return [.. models.Select(ToAdminResponse)];
     }
+
+    public static SportUserResponse ToUserResponse(
+        this SportUserModel model)
+    {
+        return new SportUserResponse(
+            model.Id,
+            model.Name
+        );
+    }
+
+    public static IReadOnlyList<SportUserResponse> ToUserResponses(
+        this IEnumerable<SportUserModel> models)
+    {
+        return [.. models.Select(ToUserResponse)];
+    }
 }

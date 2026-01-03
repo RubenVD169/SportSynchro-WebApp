@@ -1,13 +1,21 @@
+using SportSynchro.Application.Models.Matches;
 using SportSynchro.Domain.Entities;
 
 namespace SportSynchro.Application.Interfaces.Repositories;
 
 public interface IMatchRepository
 {
-   Task<Dictionary<int, Match>> GetByExternalIdsAsync(
-        int leagueId,
-        IReadOnlyCollection<int> externalIds,
+    Task<List<Match>> GetByExternalIdsAsync(
+     IReadOnlyCollection<int> externalIds,
+     CancellationToken ct);
+
+    Task<Match?> GetByExternalIdAsync(
+        int externalId,
         CancellationToken cancellationToken = default);
+    Task<HashSet<int>> GetExistingExternalIdsForSeasonAsync(
+     int seasonId,
+     IReadOnlyCollection<int> externalIds,
+     CancellationToken cancellationToken = default);
 
     Task AddAsync(
         Match match,
@@ -15,4 +23,8 @@ public interface IMatchRepository
 
    Task SaveChangesAsync(
         CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<MatchModel>> GetRecentFinishedMatchesByLeagueIdAsync(
+      int leagueId, CancellationToken cancellationToken);
+
+    Task<IReadOnlyList<MatchModel>> GetScheduledMatchesByLeagueIdAsync(int leagueId, CancellationToken cancellationToken);
 }

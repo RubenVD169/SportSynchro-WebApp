@@ -23,6 +23,21 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("SeasonTeam", b =>
+                {
+                    b.Property<int>("SeasonId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TeamId")
+                        .HasColumnType("int");
+
+                    b.HasKey("SeasonId", "TeamId");
+
+                    b.HasIndex("TeamId");
+
+                    b.ToTable("SeasonTeams", (string)null);
+                });
+
             modelBuilder.Entity("SportSynchro.Domain.Entities.League", b =>
                 {
                     b.Property<int>("Id")
@@ -37,17 +52,8 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("MatchesImported")
-                        .HasColumnType("bit");
-
-                    b.Property<DateTime?>("MatchesImportedUntilUtc")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("SportId")
                         .HasColumnType("int");
-
-                    b.Property<bool>("TeamsImported")
-                        .HasColumnType("bit");
 
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Name", "SportSynchro.Domain.Entities.League.Name#LeagueName", b1 =>
                         {
@@ -91,10 +97,10 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
                     b.Property<int>("HomeTeamId")
                         .HasColumnType("int");
 
-                    b.Property<int>("LeagueId")
+                    b.Property<int?>("RoundNumber")
                         .HasColumnType("int");
 
-                    b.Property<int?>("RoundNumber")
+                    b.Property<int>("SeasonId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartTimeUtc")
@@ -117,10 +123,51 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("HomeTeamId");
 
-                    b.HasIndex("LeagueId", "ExternalId")
+                    b.HasIndex("SeasonId", "ExternalId")
                         .IsUnique();
 
                     b.ToTable("Matches", (string)null);
+                });
+
+            modelBuilder.Entity("SportSynchro.Domain.Entities.Season", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("LeagueId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("MatchesImported")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("MatchesImportedUntilUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("TeamsImported")
+                        .HasColumnType("bit");
+
+                    b.ComplexProperty(typeof(Dictionary<string, object>), "Key", "SportSynchro.Domain.Entities.Season.Key#SeasonKey", b1 =>
+                        {
+                            b1.IsRequired();
+
+                            b1.Property<string>("Value")
+                                .IsRequired()
+                                .HasMaxLength(50)
+                                .HasColumnType("nvarchar(50)")
+                                .HasColumnName("SeasonKey");
+                        });
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LeagueId");
+
+                    b.ToTable("Seasons", (string)null);
                 });
 
             modelBuilder.Entity("SportSynchro.Domain.Entities.Sport", b =>
@@ -208,9 +255,6 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
                     b.Property<int>("ExternalId")
                         .HasColumnType("int");
 
-                    b.Property<int>("LeagueId")
-                        .HasColumnType("int");
-
                     b.ComplexProperty(typeof(Dictionary<string, object>), "Name", "SportSynchro.Domain.Entities.Team.Name#TeamName", b1 =>
                         {
                             b1.IsRequired();
@@ -224,7 +268,7 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("LeagueId", "ExternalId")
+                    b.HasIndex("ExternalId")
                         .IsUnique();
 
                     b.ToTable("Teams", (string)null);
@@ -261,6 +305,21 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
                     b.ToTable("UserFavorites", (string)null);
                 });
 
+            modelBuilder.Entity("SeasonTeam", b =>
+                {
+                    b.HasOne("SportSynchro.Domain.Entities.Season", null)
+                        .WithMany()
+                        .HasForeignKey("SeasonId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("SportSynchro.Domain.Entities.Team", null)
+                        .WithMany()
+                        .HasForeignKey("TeamId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("SportSynchro.Domain.Entities.League", b =>
                 {
                     b.HasOne("SportSynchro.Domain.Entities.Sport", null)
@@ -284,14 +343,14 @@ namespace SportSynchro.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SportSynchro.Domain.Entities.League", null)
+                    b.HasOne("SportSynchro.Domain.Entities.Season", null)
                         .WithMany()
-                        .HasForeignKey("LeagueId")
+                        .HasForeignKey("SeasonId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SportSynchro.Domain.Entities.Team", b =>
+            modelBuilder.Entity("SportSynchro.Domain.Entities.Season", b =>
                 {
                     b.HasOne("SportSynchro.Domain.Entities.League", null)
                         .WithMany()

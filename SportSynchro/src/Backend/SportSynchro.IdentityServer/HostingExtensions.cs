@@ -1,4 +1,3 @@
-using Duende.IdentityServer;
 using SportSynchro.IdentityServer.Data;
 using SportSynchro.IdentityServer.Models;
 using Microsoft.AspNetCore.Identity;
@@ -17,7 +16,7 @@ internal static class HostingExtensions
         builder.Services.AddRazorPages();
 
         builder.Services.Configure<DatabaseOptions>(
-            builder.Configuration.GetSection(nameof(DatabaseOptions)));
+            builder.Configuration.GetSection(DatabaseOptions.SectionName));
 
         builder.Services.Configure<FrontendOptions>(
             builder.Configuration.GetSection(nameof(FrontendOptions)));
@@ -25,12 +24,10 @@ internal static class HostingExtensions
         builder.Services.Configure<CorsOptions>(
             builder.Configuration.GetSection(nameof(CorsOptions)));
 
-
-
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
                 DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
-                options.UseSqlServer(dbOptions.DefaultConnection);
+                options.UseSqlServer(dbOptions.ConnectionString);
             });
 
         builder.Services.AddDbContext<ConfigurationDbContext>((sp, options) =>
@@ -38,7 +35,7 @@ internal static class HostingExtensions
                 DatabaseOptions dbOptions = sp.GetRequiredService<IOptions<DatabaseOptions>>().Value;
 
                 options.UseSqlServer(
-                    dbOptions.DefaultConnection,
+                    dbOptions.ConnectionString,
                     sql => sql.MigrationsAssembly(typeof(Program).Assembly.GetName().Name)
                 );
             });
@@ -69,6 +66,14 @@ internal static class HostingExtensions
 
         builder.Services.AddControllers();
 
+        builder.Services.AddMemoryCache();
+
+        DatabaseOptions dbOptions =
+            builder.Configuration
+                .GetSection(DatabaseOptions.SectionName)
+                .Get<DatabaseOptions>()
+            ?? throw new InvalidOperationException("DatabaseOptions not configured");
+
         builder.Services
             .AddIdentityServer(options =>
             {
@@ -76,13 +81,22 @@ internal static class HostingExtensions
                 options.Events.RaiseInformationEvents = true;
                 options.Events.RaiseFailureEvents = true;
                 options.Events.RaiseSuccessEvents = true;
-
-                // see https://docs.duendesoftware.com/identityserver/v6/fundamentals/resources/
                 options.EmitStaticAudienceClaim = true;
             })
             .AddConfigurationStore()
             .AddAspNetIdentity<ApplicationUser>()
-            .AddProfileService<ProfileService>();
+            .AddProfileService<ProfileService>()
+            .AddInMemoryCaching()
+            .AddOperationalStore(options =>
+            {
+                options.ConfigureDbContext = b =>
+                    b.UseSqlServer(
+                        dbOptions.ConnectionString,
+                        sql => sql.MigrationsAssembly(
+                            typeof(Program).Assembly.GetName().Name
+                        )
+                    );
+            });
 
         builder.Services.AddAuthentication();
 

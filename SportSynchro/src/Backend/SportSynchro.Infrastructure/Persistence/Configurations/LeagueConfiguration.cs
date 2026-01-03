@@ -24,22 +24,12 @@ public sealed class LeagueConfiguration : IEntityTypeConfiguration<League>
               builder.Property(l => l.IsVisible)
                      .IsRequired();
 
-              builder.Property(l => l.TeamsImported)
-                     .IsRequired();
-
-              builder.Property(l => l.MatchesImported)
-                     .IsRequired();
-
-              builder.Property(l => l.MatchesImportedUntilUtc)
-                     .HasColumnType("datetime2")
-                     .IsRequired(false);
-
               builder.ComplexProperty(l => l.Name, name =>
               {
                      name.Property(n => n.Value)
-                     .HasColumnName("Name")
-                     .HasMaxLength(200)
-                     .IsRequired();
+                   .HasColumnName("Name")
+                   .HasMaxLength(200)
+                   .IsRequired();
               });
 
               builder.HasOne<Sport>()

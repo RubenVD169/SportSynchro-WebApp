@@ -4,7 +4,10 @@ namespace SportSynchro.Application.Interfaces.Repositories;
 
 public interface ILeagueRepository
 {
-   Task<League?> GetByIdAsync(
+    Task<IReadOnlyList<League>> GetForUserBySportIdAsync(
+        int sportId,
+      CancellationToken cancellationToken);
+    Task<League?> GetByIdAsync(
         int leagueId,
         CancellationToken cancellationToken = default);
    

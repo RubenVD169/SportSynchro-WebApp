@@ -24,13 +24,4 @@ public sealed class Subscription
     public string AspUserId { get; private set; }
     public DateTime CreatedAtUtc { get; private set; }
     public SubscriptionType Type => _type;
-
-    // Business Rule: Lifetime — no expiration
-    public bool IsActive() => true;
-
-    public void UpdateType(SubscriptionType newType)
-    {
-        _type = newType ?? throw new SubscriptionException("Subscription type cannot be null.");
-    }
-
 }

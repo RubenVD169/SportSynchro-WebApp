@@ -1,9 +1,15 @@
 import useSports from "../../hooks/useSports";
 import SportCard from "../../components/sports/SportCard";
 import { FullscreenLoader } from "../../components/ui/FullscreenLoader";
+import { useEffect } from "react";
 
 export default function HomePage() {
-  const { sports, loadingSports } = useSports();
+  const { sports, loadingSports, refreshUserSports } = useSports();
+
+  useEffect(() => {
+    refreshUserSports();
+  }, [refreshUserSports]);
+  
   
   if (loadingSports) {
     return <FullscreenLoader text="Loading Sports ..." />;

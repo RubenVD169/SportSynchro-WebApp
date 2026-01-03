@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using SportSynchro.Application.Interfaces.External;
 using SportSynchro.External.TheSportsDb.Contracts.Models.Leagues;
 using SportSynchro.External.TheSportsDb.Contracts.Models.Matches;
+using SportSynchro.External.TheSportsDb.Contracts.Models.Seasons;
 using SportSynchro.External.TheSportsDb.Contracts.Models.Sports;
 using SportSynchro.External.TheSportsDb.Contracts.Models.Teams;
 
@@ -16,6 +17,7 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
             PropertyNameCaseInsensitive = true,
             NumberHandling = JsonNumberHandling.AllowReadingFromString
         };
+
     private readonly HttpClient _httpClient;
 
     public TheSportsDbRepository(HttpClient httpClient)
@@ -24,9 +26,11 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
     }
 
     public async Task<IReadOnlyList<TheSportsDbSportDto>> GetAllSportsAsync(
-     CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
-        HttpResponseMessage response = await _httpClient.GetAsync("all/sports", cancellationToken);
+        HttpResponseMessage response =
+            await _httpClient.GetAsync("all/sports", cancellationToken);
+
         response.EnsureSuccessStatusCode();
 
         await using Stream stream =
@@ -38,33 +42,32 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
                 JsonOptions,
                 cancellationToken);
 
-        return dto?.All ?? new List<TheSportsDbSportDto>();
-
+        return dto?.All ?? [];
     }
 
     public async Task<IReadOnlyList<TheSportsDbLeagueDto>> GetAllLeaguesAsync(
-    CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         HttpResponseMessage response =
             await _httpClient.GetAsync("all/leagues", cancellationToken);
+
         response.EnsureSuccessStatusCode();
 
         await using Stream stream =
             await response.Content.ReadAsStreamAsync(cancellationToken);
 
         TheSportsDbLeaguesResponseDto? dto =
-            await JsonSerializer.DeserializeAsync<
-                TheSportsDbLeaguesResponseDto>(
-                    stream,
-                    JsonOptions,
-                    cancellationToken);
+            await JsonSerializer.DeserializeAsync<TheSportsDbLeaguesResponseDto>(
+                stream,
+                JsonOptions,
+                cancellationToken);
 
         return dto?.All ?? [];
     }
 
     public async Task<IReadOnlyList<TheSportsDbTeamDto>> GetTeamsByLeagueAsync(
-    int leagueExternalId,
-    CancellationToken cancellationToken)
+        int leagueExternalId,
+        CancellationToken cancellationToken)
     {
         HttpResponseMessage response =
             await _httpClient.GetAsync(
@@ -85,13 +88,41 @@ public sealed class TheSportsDbRepository : ITheSportsDbRepository
         return dto?.List ?? [];
     }
 
-    public async Task<IReadOnlyList<TheSportsDbMatchDto>> GetMatchesByTeamAsync(
-        int teamExternalId,
+    public async Task<IReadOnlyList<string>> GetSeasonsByLeagueAsync(
+        int leagueExternalId,
         CancellationToken cancellationToken)
     {
         HttpResponseMessage response =
             await _httpClient.GetAsync(
-                $"schedule/full/team/{teamExternalId}",
+                $"list/seasons/{leagueExternalId}",
+                cancellationToken);
+
+        response.EnsureSuccessStatusCode();
+
+        await using Stream stream =
+            await response.Content.ReadAsStreamAsync(cancellationToken);
+
+        TheSportsDbSeasonsResponseDto? dto =
+            await JsonSerializer.DeserializeAsync<TheSportsDbSeasonsResponseDto>(
+                stream,
+                JsonOptions,
+                cancellationToken);
+
+        return dto?.List?
+            .Where(s => !string.IsNullOrWhiteSpace(s.StrSeason))
+            .Select(s => s.StrSeason!)
+            .ToList()
+            ?? [];
+    }
+
+    public async Task<IReadOnlyList<TheSportsDbMatchDto>> GetMatchesByLeagueAndSeasonAsync(
+        int leagueExternalId,
+        string season,
+        CancellationToken cancellationToken)
+    {
+        HttpResponseMessage response =
+            await _httpClient.GetAsync(
+                $"schedule/league/{leagueExternalId}/{season}",
                 cancellationToken);
 
         response.EnsureSuccessStatusCode();

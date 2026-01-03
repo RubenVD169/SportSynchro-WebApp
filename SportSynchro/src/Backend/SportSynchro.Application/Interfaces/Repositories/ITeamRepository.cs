@@ -4,13 +4,14 @@ namespace SportSynchro.Application.Interfaces.Repositories;
 
 public interface ITeamRepository
 {
-    Task<HashSet<int>> GetExistingExternalIdsForLeagueAsync(
-            int leagueId,
-            CancellationToken cancellationToken = default);
+    // ExternalId -> Team
+    Task<Dictionary<int, Team>> GetByExternalIdsAsync(
+        IReadOnlyCollection<int> externalIds,
+        CancellationToken cancellationToken = default);
 
-    Task<Dictionary<int, int>> GetTeamLookupForLeagueAsync(
-    int leagueId,
-    CancellationToken cancellationToken = default);
+    Task AddAsync(
+        Team team,
+        CancellationToken cancellationToken = default);
 
     Task AddRangeAsync(
         IReadOnlyList<Team> teams,
