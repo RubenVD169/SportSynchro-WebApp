@@ -1,12 +1,14 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import useLeagues from "../../hooks/useLeagues";
 import LeagueCard from "../../components/sports/LeagueCard";
 import { FullscreenLoader } from "../../components/ui/FullscreenLoader";
 import { getHasLiveAccess } from "../../services/subscriptionService";
+import { IoArrowBack } from "react-icons/io5";
 
 export default function SportDetailsPage() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const sportId = Number(id);
 
     const { userLeagues, loadingLeagues } = useLeagues(sportId);
@@ -26,6 +28,13 @@ export default function SportDetailsPage() {
 
     return (
         <div>
+            <button
+                onClick={() => navigate("/")}
+                className="mb-4 flex items-center gap-2 text-gray-400 hover:text-white transition"
+            >
+                <IoArrowBack className="text-lg" />
+                <span className="text-sm">Back to sports</span>
+            </button>
             <h1 className="text-3xl font-bold mb-6 text-gray-100">
                 Leagues
             </h1>

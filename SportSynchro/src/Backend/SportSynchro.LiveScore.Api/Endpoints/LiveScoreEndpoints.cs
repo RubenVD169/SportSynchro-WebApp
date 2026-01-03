@@ -13,7 +13,8 @@ public static class LiveScoreEndpoints
             CancellationToken ct) =>
         {
             IReadOnlyList<LiveMatchDocument> matches = await repository.GetByLeagueAsync(leagueId, ct);
-            return Results.Ok(matches);
+            IReadOnlyList<LiveMatchResponse> response = MapToResponseList(matches);
+            return Results.Ok(response);
         });
 
         app.MapGet("/live/event/{leagueId}/{eventId}", async (
@@ -29,4 +30,24 @@ public static class LiveScoreEndpoints
                 : Results.Ok(match);
         });
     }
+
+    private static LiveMatchResponse MapToResponse(
+    LiveMatchDocument live)
+    {
+        return new LiveMatchResponse(
+            live.Id,
+            live.HomeTeamName,
+            live.AwayTeamName,
+            int.TryParse(live.HomeScore, out int hs) ? hs : 0,
+            int.TryParse(live.AwayScore, out int aw) ? aw : 0,
+            live.Status,
+            live.Progress);
+    }
+
+    private static IReadOnlyList<LiveMatchResponse> MapToResponseList(
+        IReadOnlyList<LiveMatchDocument> liveMatches)
+    {
+        return [.. liveMatches.Select(MapToResponse)];
+    }
+
 }

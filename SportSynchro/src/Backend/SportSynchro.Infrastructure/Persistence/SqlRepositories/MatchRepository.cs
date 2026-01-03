@@ -19,7 +19,6 @@ public sealed class MatchRepository : IMatchRepository
     CancellationToken ct)
     {
         return _db.Matches
-            .AsNoTracking()
             .Where(m => externalIds.Contains(m.ExternalId))
             .ToListAsync(ct);
     }
@@ -30,7 +29,6 @@ public sealed class MatchRepository : IMatchRepository
     CancellationToken cancellationToken = default)
     {
         return await _db.Matches
-            .AsNoTracking()
             .Where(m => m.SeasonId == seasonId && externalIds.Contains(m.ExternalId))
             .Select(m => m.ExternalId)
             .ToHashSetAsync(cancellationToken);

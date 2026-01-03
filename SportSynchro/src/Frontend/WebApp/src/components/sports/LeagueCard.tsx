@@ -31,7 +31,9 @@ export default function LeagueCard({
   }
 
   function handleCardClick() {
-    navigate(`/sports/${sportId}/${league.id}`);
+    navigate(`/sports/${sportId}/${league.id}`, { 
+      state: { leagueName: league.name } 
+    });
   }
 
   return (

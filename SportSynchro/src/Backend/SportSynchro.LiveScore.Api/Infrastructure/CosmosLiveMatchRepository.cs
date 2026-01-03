@@ -59,8 +59,8 @@ public sealed class CosmosLiveMatchRepository : ILiveMatchRepository
         Container container = GetCosmosContainer();
 
         QueryDefinition? query = new QueryDefinition(
-            "SELECT * FROM c WHERE c.idLeague = @leagueId")
-            .WithParameter("@leagueId", leagueId);
+            "SELECT * FROM c WHERE c.idLeague = @leagueId AND c.strStatus != 'FT'")
+            .WithParameter("@leagueId", leagueId);        
 
         FeedIterator<LiveMatchDocument> iterator = container.GetItemQueryIterator<LiveMatchDocument>(
             query,

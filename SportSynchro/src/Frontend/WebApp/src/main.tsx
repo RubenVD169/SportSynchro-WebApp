@@ -7,6 +7,7 @@ import { SportsProvider } from './contexts/SportsContext';
 import { AuthProvider } from "react-oidc-context";
 import { authSettings } from "./config/authconfig";
 import AuthAxiosBridge from './auth/AuthAxiosBridge';
+import "simplebar-react/dist/simplebar.min.css";
 
 const onSigninCallback = (): void => {
   window.history.replaceState({}, document.title, window.location.pathname);

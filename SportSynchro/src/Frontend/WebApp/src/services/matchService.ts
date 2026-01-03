@@ -31,6 +31,19 @@ export async function fetchScheduledMatchesByLeague(
   }
 }
 
+export async function fetchLiveMatches(leagueId: number): Promise<LiveMatch[]> {
+  try {
+    const res = await api.get(`livescores/league/${leagueId}`);
+    return res.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 404) {
+      return [];
+    } else {
+      throw error;
+    }
+  }
+}
+
 type DerivedMatchStatus = "not-started" | "live" | "finished";
 
 export function deriveMatchStatus(

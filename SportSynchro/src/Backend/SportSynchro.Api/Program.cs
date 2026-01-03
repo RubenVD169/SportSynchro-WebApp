@@ -3,15 +3,18 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Scalar.AspNetCore;
 using SportSynchro.Api;
 using SportSynchro.Api.Auth;
 using SportSynchro.Api.Options;
 using SportSynchro.Api.Options.ExternalOptions;
 using SportSynchro.Api.Workers;
 using SportSynchro.Application.Interfaces.External;
+using SportSynchro.Application.Interfaces.Lookups;
 using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Application.Services;
+using SportSynchro.Infrastructure.Caching;
 using SportSynchro.Infrastructure.External.TheSportsDb;
 using SportSynchro.Infrastructure.Persistence;
 using SportSynchro.Infrastructure.Persistence.Seeding;
@@ -22,6 +25,7 @@ using SubscriptionService = SportSynchro.Application.Services.SubscriptionServic
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
+builder.Services.AddMemoryCache();
 
 builder.Services.Configure<DatabaseOptions>(
     builder.Configuration.GetSection(DatabaseOptions.SectionName));
@@ -48,7 +52,6 @@ builder.Services.Configure<LiveScoreApiOptions>(
 builder.Services.Configure<StripeOptions>(
     builder.Configuration.GetSection(StripeOptions.SectionName));
 //stripe services
-builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<ProductService>();
 
 builder.Services.AddDbContext<SportSynchroDbContext>((sp, options) =>
@@ -92,6 +95,8 @@ builder.Services.AddScoped<ISportRepository, SportRepository>();
 builder.Services.AddScoped<ISeasonRepository, SeasonRepository>();
 builder.Services.AddScoped<ISeasonTeamRepository, SeasonTeamRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+
+builder.Services.AddScoped<ILeagueExternalIdResolver, LeagueExternalIdResolver>();
 
 // Add authentication and authorization
 IdentityServerOptions authOptions = builder.Configuration
@@ -187,6 +192,11 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
+
+app.MapScalarApiReference(options =>
+{
+    options.Title = "SportSynchro API";
+});
 
 app.UseHttpsRedirection();
 app.UseCors();

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SportSynchro.Api.Contracts.LiveScore.Responses;
 
 namespace SportSynchro.Api.Controllers;
 
@@ -20,7 +21,11 @@ public sealed class LiveScoresController : ControllerBase
         string leagueId,
         CancellationToken ct)
     {
-        string json = await _liveScore.GetLiveByLeagueAsync(leagueId, ct);
-        return Content(json, "application/json");
+        IReadOnlyList<LiveMatchResponse> matches = await _liveScore.GetLiveByLeagueAsync(leagueId, ct);
+        if (matches.Count == 0)
+        {
+            return NotFound();
+        }
+        return Ok(matches);
     }
 }
