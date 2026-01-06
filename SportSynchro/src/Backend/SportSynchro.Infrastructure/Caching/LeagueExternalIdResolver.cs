@@ -24,21 +24,28 @@ public sealed class LeagueExternalIdResolver: ILeagueExternalIdResolver
     {
         string cacheKey = $"league:external:{internalLeagueId}";
 
-        if (_cache.TryGetValue(cacheKey, out int externalId))
+        if (_cache.TryGetValue(cacheKey, out string? cached)
+            && cached is not null)
         {
-            return externalId.ToString();
+            return cached;
         }
 
         int dbExternalId = await _db.Leagues
-            .AsNoTracking()                   
+            .AsNoTracking()
             .Where(l => l.Id == internalLeagueId)
             .Select(l => l.ExternalId)
             .SingleOrDefaultAsync(ct);
-        
-        string dbExternalIdStr = dbExternalId.ToString() ?? throw new InvalidOperationException(
+
+        if (dbExternalId == 0)
+            throw new InvalidOperationException(
                 $"League '{internalLeagueId}' has no ExternalId.");
-        
-        _cache.Set(cacheKey, dbExternalIdStr, TimeSpan.FromHours(1));
+
+        string dbExternalIdStr = dbExternalId.ToString();
+
+        _cache.Set(
+            cacheKey,
+            dbExternalIdStr);
+
         return dbExternalIdStr;
     }
 }

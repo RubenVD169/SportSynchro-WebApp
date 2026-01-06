@@ -23,8 +23,10 @@ public interface IMatchRepository
 
    Task SaveChangesAsync(
         CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<MatchModel>> GetRecentFinishedMatchesByLeagueIdAsync(
+
+    Task<IReadOnlyList<MatchModel>> GetScheduledMatchesByLeagueIdAsync(
       int leagueId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<MatchModel>> GetScheduledMatchesByLeagueIdAsync(int leagueId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<MatchModel>> GetRecentFinishedMatchesForVisibleLeaguesBySportIdAsync(
+      int sportId, CancellationToken cancellationToken);
 }

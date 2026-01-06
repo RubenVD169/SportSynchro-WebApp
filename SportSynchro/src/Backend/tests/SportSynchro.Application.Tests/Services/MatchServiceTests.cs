@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Xunit;
 
@@ -14,7 +15,7 @@ namespace SportSynchro.Application.Tests.Services;
 public sealed class MatchServiceTests
 {
     [Fact]
-    public async Task GetRecentMatchesByLeagueIdAsync_ReturnsMatchesFromRepository()
+    public async Task GetScheduledMatchesByLeagueIdAsync_ReturnsMatchesFromRepository()
     {
         // Arrange
         const int leagueId = 10;
@@ -24,36 +25,37 @@ public sealed class MatchServiceTests
             new MatchModel(
                 Id: 1,
                 LeagueName: "Premier League",
-                MatchDate: DateTime.UtcNow,
+                MatchDate: DateTime.UtcNow.AddDays(1),
                 HomeTeam: "Team A",
                 AwayTeam: "Team B",
-                HomeScore: 2,
-                AwayScore: 1,
-                Status: "Finished"),
+                HomeScore: 0,
+                AwayScore: 0,
+                Status: "Scheduled"),
 
             new MatchModel(
                 Id: 2,
                 LeagueName: "Premier League",
-                MatchDate: DateTime.UtcNow,
+                MatchDate: DateTime.UtcNow.AddDays(2),
                 HomeTeam: "Team C",
                 AwayTeam: "Team D",
                 HomeScore: 0,
                 AwayScore: 0,
-                Status: "Finished")
+                Status: "Scheduled")
         };
 
         var repo = new Mock<IMatchRepository>(MockBehavior.Strict);
         repo
-            .Setup(x => x.GetRecentFinishedMatchesByLeagueIdAsync(
+            .Setup(x => x.GetScheduledMatchesByLeagueIdAsync(
                 leagueId,
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(expected);
 
-        var service = new MatchService(repo.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var service = new MatchService(repo.Object, cache);
 
         // Act
         IReadOnlyList<MatchModel> result =
-            await service.GetRecentMatchesByLeagueIdAsync(leagueId, CancellationToken.None);
+            await service.GetScheduledMatchesByLeagueIdAsync(leagueId, CancellationToken.None);
 
         // Assert
         result.Should().BeSameAs(expected);
@@ -62,27 +64,40 @@ public sealed class MatchServiceTests
     }
 
     [Fact]
-    public async Task GetRecentMatchesByLeagueIdAsync_NoMatches_ReturnsEmptyList()
+    public async Task GetRecentFinishedMatchesForVisibleLeaguesBySportIdAsync_CachesResults()
     {
         // Arrange
-        const int leagueId = 99;
+        const int sportId = 5;
+
+        var matches = new List<MatchModel>
+        {
+            new MatchModel(
+                Id: 1,
+                LeagueName: "Premier League",
+                MatchDate: DateTime.UtcNow,
+                HomeTeam: "Team A",
+                AwayTeam: "Team B",
+                HomeScore: 2,
+                AwayScore: 1,
+                Status: "Finished")
+        };
 
         var repo = new Mock<IMatchRepository>(MockBehavior.Strict);
         repo
-            .Setup(x => x.GetRecentFinishedMatchesByLeagueIdAsync(
-                leagueId,
+            .Setup(x => x.GetRecentFinishedMatchesForVisibleLeaguesBySportIdAsync(
+                sportId,
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<MatchModel>());
+            .ReturnsAsync(matches);
 
-        var service = new MatchService(repo.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var service = new MatchService(repo.Object, cache);
 
         // Act
         IReadOnlyList<MatchModel> result =
-            await service.GetRecentMatchesByLeagueIdAsync(leagueId, CancellationToken.None);
+            await service.GetRecentFinishedMatchesForVisibleLeaguesBySportIdAsync(sportId, CancellationToken.None);
 
         // Assert
-        result.Should().BeEmpty();
-
+        result.Should().BeSameAs(matches);
         repo.VerifyAll();
     }
 }

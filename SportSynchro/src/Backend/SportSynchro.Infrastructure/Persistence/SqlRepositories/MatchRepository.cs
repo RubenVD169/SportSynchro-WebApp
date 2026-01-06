@@ -47,33 +47,6 @@ public sealed class MatchRepository : IMatchRepository
         await _db.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<MatchModel>> GetRecentFinishedMatchesByLeagueIdAsync(
-    int leagueId,
-    CancellationToken cancellationToken)
-    {
-        return await (
-            from m in _db.Matches.AsNoTracking()
-            join s in _db.Seasons on m.SeasonId equals s.Id
-            join l in _db.Leagues on s.LeagueId equals l.Id
-            join ht in _db.Teams on m.HomeTeamId equals ht.Id
-            join at in _db.Teams on m.AwayTeamId equals at.Id
-            where m.Status.Value == "Finished"
-                && s.LeagueId == leagueId
-            orderby m.StartTimeUtc descending
-            select new MatchModel(
-                m.Id,
-                l.Name.Value,
-                m.StartTimeUtc,
-                ht.Name.Value,
-                at.Name.Value,
-                m.HomeScore ?? 0,
-                m.AwayScore ?? 0,
-                m.Status.Value)
-        )
-        .Take(10)
-        .ToListAsync(cancellationToken);
-    }
-
     public Task<Match?> GetByExternalIdAsync(int externalId, CancellationToken cancellationToken = default)
     {
         return _db.Matches
@@ -101,4 +74,45 @@ public sealed class MatchRepository : IMatchRepository
                 ,m.Status.Value)
         ).ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<MatchModel>>
+        GetRecentFinishedMatchesForVisibleLeaguesBySportIdAsync(
+        int sportId,
+        CancellationToken cancellationToken)
+    {
+        return await (
+            from l in _db.Leagues.AsNoTracking()
+            where l.IsVisible && l.SportId == sportId
+            from m in
+                (from m in _db.Matches
+                 join s in _db.Seasons on m.SeasonId equals s.Id
+                 where m.Status.Value == "Finished"
+                       && s.LeagueId == l.Id
+                 orderby m.StartTimeUtc descending, m.Id descending
+                 select new
+                 {
+                     m.Id,
+                     m.StartTimeUtc,
+                     m.HomeScore,
+                     m.AwayScore,
+                     m.HomeTeamId,
+                     m.AwayTeamId,
+                     m.Status
+                 }).Take(3)
+            join ht in _db.Teams on m.HomeTeamId equals ht.Id
+            join at in _db.Teams on m.AwayTeamId equals at.Id
+            select new MatchModel(
+                m.Id,
+                l.Name.Value,
+                m.StartTimeUtc,
+                ht.Name.Value,
+                at.Name.Value,
+                m.HomeScore ?? 0,
+                m.AwayScore ?? 0,
+                m.Status.Value
+
+            )
+        ).ToListAsync(cancellationToken);
+    }
+
 }

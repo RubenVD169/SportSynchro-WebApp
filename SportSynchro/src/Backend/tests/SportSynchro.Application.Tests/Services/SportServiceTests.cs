@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Xunit;
 
@@ -56,7 +57,8 @@ public sealed class SportServiceTests
             .Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(sports);
 
-        var service = new SportService(repo.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var service = new SportService(repo.Object, cache);
 
         // Act
         IReadOnlyList<SportAdminModel> result =
@@ -87,7 +89,8 @@ public sealed class SportServiceTests
             .Setup(x => x.GetAllVisibleAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(sports);
 
-        var service = new SportService(repo.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var service = new SportService(repo.Object, cache);
 
         // Act
         IReadOnlyList<SportUserModel> result =
@@ -110,7 +113,8 @@ public sealed class SportServiceTests
             .Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Sport?)null);
 
-        var service = new SportService(repo.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var service = new SportService(repo.Object, cache);
 
         // Act
         bool result =
@@ -136,7 +140,8 @@ public sealed class SportServiceTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(0);
 
-        var service = new SportService(repo.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var service = new SportService(repo.Object, cache);
 
         // Act
         bool result =
@@ -164,7 +169,8 @@ public sealed class SportServiceTests
             .Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
-        var service = new SportService(repo.Object);
+        var cache = new MemoryCache(new MemoryCacheOptions());
+        var service = new SportService(repo.Object, cache);
 
         // Act
         bool result =

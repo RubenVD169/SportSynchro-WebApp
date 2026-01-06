@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Caching.Memory;
 using SportSynchro.Application.Interfaces.External;
 using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
@@ -14,19 +15,28 @@ public sealed class LeagueService : ILeagueService
     private readonly ITeamImportService _teamImportService;
     private readonly IMatchImportService _matchImportService;
     private readonly ITheSportsDbRepository _sportsDbRepository;
+    private readonly IMemoryCache _cache;
+
+    private static string UserLeaguesCacheKey(int sportId)
+        => $"visible-leagues-{sportId}";
+
+    private static string AdminLeaguesCacheKey(int sportId)
+        => $"admin-leagues-{sportId}";
 
     public LeagueService(
         ILeagueRepository leagueRepository,
         ISeasonRepository seasonRepository,
         ITeamImportService teamImportService,
         IMatchImportService matchImportService,
-        ITheSportsDbRepository sportsDbRepository)
+        ITheSportsDbRepository sportsDbRepository,
+        IMemoryCache memoryCache)
     {
         _leagueRepository = leagueRepository;
         _seasonRepository = seasonRepository;
         _teamImportService = teamImportService;
         _matchImportService = matchImportService;
         _sportsDbRepository = sportsDbRepository;
+        _cache = memoryCache;
     }
 
     public async Task<IReadOnlyList<LeagueUserModel>>
@@ -34,15 +44,31 @@ public sealed class LeagueService : ILeagueService
             int sportId,
             CancellationToken cancellationToken)
     {
+        string cacheKey = UserLeaguesCacheKey(sportId);
+
+        if (_cache.TryGetValue(
+                cacheKey,
+                out IReadOnlyList<LeagueUserModel>? cached)
+            && cached is not null)
+        {
+            return cached;
+        }
+
         IReadOnlyList<League> leagues =
             await _leagueRepository.GetForUserBySportIdAsync(
                 sportId,
                 cancellationToken);
 
-        return [.. leagues
-            .Select(l => new LeagueUserModel(
+        IReadOnlyList<LeagueUserModel> result =
+        [
+            .. leagues.Select(l => new LeagueUserModel(
                 l.Id,
-                l.Name.Value))];
+                l.Name.Value))
+        ];
+
+        _cache.Set(cacheKey, result);
+
+        return result;
     }
 
     public async Task<IReadOnlyList<LeagueAdminModel>>
@@ -50,22 +76,38 @@ public sealed class LeagueService : ILeagueService
             int sportId,
             CancellationToken cancellationToken)
     {
+        string cacheKey = AdminLeaguesCacheKey(sportId);
+
+        if (_cache.TryGetValue(
+                cacheKey,
+                out IReadOnlyList<LeagueAdminModel>? cached)
+            && cached is not null)
+        {
+            return cached;
+        }
+
         IReadOnlyList<League> leagues =
             await _leagueRepository.GetBySportIdAsync(
                 sportId,
                 cancellationToken);
 
-        return [.. leagues
-            .Select(l => new LeagueAdminModel(
+        IReadOnlyList<LeagueAdminModel> result =
+        [
+            .. leagues.Select(l => new LeagueAdminModel(
                 l.Id,
                 l.Name.Value,
-                l.IsVisible))];
+                l.IsVisible))
+        ];
+
+        _cache.Set(cacheKey, result);
+
+        return result;
     }
 
     public async Task<bool> SetLeagueVisibilityAsync(
-     int leagueId,
-     bool isVisible,
-     CancellationToken cancellationToken = default)
+        int leagueId,
+        bool isVisible,
+        CancellationToken cancellationToken = default)
     {
         League? league =
             await _leagueRepository.GetByIdAsync(
@@ -80,6 +122,7 @@ public sealed class LeagueService : ILeagueService
         if (!isVisible)
         {
             await _leagueRepository.SaveChangesAsync(cancellationToken);
+            InvalidateLeagueCaches(league.SportId);
             return true;
         }
 
@@ -91,7 +134,7 @@ public sealed class LeagueService : ILeagueService
         string apiSeasonKey =
             seasons.Count == 0
                 ? "default"
-                : seasons[^1]; // last season 
+                : seasons[^1]; //last season
 
         Season? currentSeason =
             await _seasonRepository.GetCurrentForLeagueAsync(
@@ -99,15 +142,12 @@ public sealed class LeagueService : ILeagueService
                 cancellationToken);
 
         Season activeSeason;
-
         // Detect new season
         if (currentSeason is null ||
             currentSeason.Key.Value != apiSeasonKey)
         {
-            // Close old season
             currentSeason?.MarkAsNotCurrent();
-
-            // Create new season
+            //close old season
             activeSeason = new Season(
                 leagueId: league.Id,
                 key: SeasonKey.Create(apiSeasonKey),
@@ -128,7 +168,7 @@ public sealed class LeagueService : ILeagueService
             activeSeason,
             league.ExternalId,
             cancellationToken);
-        
+
         activeSeason.MarkTeamsImported();
 
         DateTime? latestImportedUtc =
@@ -144,6 +184,14 @@ public sealed class LeagueService : ILeagueService
         }
 
         await _leagueRepository.SaveChangesAsync(cancellationToken);
+
+        InvalidateLeagueCaches(league.SportId);
         return true;
+    }
+
+    private void InvalidateLeagueCaches(int sportId)
+    {
+        _cache.Remove(UserLeaguesCacheKey(sportId));
+        _cache.Remove(AdminLeaguesCacheKey(sportId));
     }
 }

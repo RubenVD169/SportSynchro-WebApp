@@ -1,4 +1,3 @@
-import useRecentMatches from "../../hooks/useRecentMatches";
 import { useState } from "react";
 import { createCheckoutSession } from "../../services/stripeService";
 import { useNavigate, useParams } from "react-router-dom";
@@ -6,14 +5,15 @@ import { useNavigate, useParams } from "react-router-dom";
 interface LeagueCardProps {
   league: League;
   hasLiveAccess: boolean;
+  recentMatches: Match[];
 }
 
 export default function LeagueCard({
   league,
   hasLiveAccess,
+  recentMatches,
 }: LeagueCardProps) {
   const navigate = useNavigate();
-  const { matches, loading } = useRecentMatches(league.id);
   const [redirecting, setRedirecting] = useState(false);
   const sportId = useParams().id;
 
@@ -31,13 +31,13 @@ export default function LeagueCard({
   }
 
   function handleCardClick() {
-    navigate(`/sports/${sportId}/${league.id}`, { 
-      state: { leagueName: league.name } 
+    navigate(`/sports/${sportId}/${league.id}`, {
+      state: { leagueName: league.name }
     });
   }
 
   return (
-    <div className="bg-gray-800 rounded-lg p-4 shadow flex flex-col gap-4 cursor-pointer" 
+    <div className="bg-gray-800 rounded-lg p-4 shadow flex flex-col gap-4 cursor-pointer"
       onClick={hasLiveAccess ? handleCardClick : handleUnlockClick}>
       <h2 className="text-xl font-semibold text-white">{league.name}</h2>
 
@@ -46,11 +46,9 @@ export default function LeagueCard({
           Recent matches
         </h3>
 
-        {loading ? (
-          <p className="text-sm text-gray-500">Loading matches...</p>
-        ) : matches.length > 0 ? (
+        {recentMatches.length > 0 ? (
           <ul className="text-sm text-gray-400 space-y-1">
-            {matches.slice(0, 3).map((m) => (
+            {recentMatches.map((m) => (
               <li key={m.id}>
                 {m.homeTeam} {m.homeScore} – {m.awayScore} {m.awayTeam}
               </li>
@@ -61,6 +59,7 @@ export default function LeagueCard({
             No recent matches available.
           </p>
         )}
+
       </div>
 
       <div className="relative bg-gray-700 rounded p-3">

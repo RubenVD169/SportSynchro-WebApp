@@ -13,7 +13,7 @@ interface League {
 
 interface Match {
   id: number;
-  leagueId: number;
+  leagueName: string;
   homeTeam: string;
   awayTeam: string;
   homeScore: number;
