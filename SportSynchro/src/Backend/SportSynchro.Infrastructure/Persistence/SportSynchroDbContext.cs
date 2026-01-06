@@ -12,7 +12,6 @@ public sealed class SportSynchroDbContext(DbContextOptions<SportSynchroDbContext
     public DbSet<Season> Seasons => Set<Season>();
     public DbSet<SeasonTeam> SeasonTeams => Set<SeasonTeam>();
     public DbSet<Subscription> Subscriptions => Set<Subscription>();
-    public DbSet<UserFavorite> UserFavorites => Set<UserFavorite>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
