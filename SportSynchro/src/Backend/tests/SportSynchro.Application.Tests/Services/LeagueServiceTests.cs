@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using Xunit;
 
@@ -73,13 +74,15 @@ public sealed class LeagueServiceTests
         var teamImport = new Mock<ITeamImportService>(MockBehavior.Strict);
         var matchImport = new Mock<IMatchImportService>(MockBehavior.Strict);
         var sportsDb = new Mock<ITheSportsDbRepository>(MockBehavior.Strict);
+        var cache = new MemoryCache(new MemoryCacheOptions());
 
         var service = new LeagueService(
             leagueRepo.Object,
             seasonRepo.Object,
             teamImport.Object,
             matchImport.Object,
-            sportsDb.Object);
+            sportsDb.Object,
+            cache);
 
         // Act
         bool result =
@@ -114,13 +117,15 @@ public sealed class LeagueServiceTests
         var teamImport = new Mock<ITeamImportService>(MockBehavior.Strict);
         var matchImport = new Mock<IMatchImportService>(MockBehavior.Strict);
         var sportsDb = new Mock<ITheSportsDbRepository>(MockBehavior.Strict);
+        var cache = new MemoryCache(new MemoryCacheOptions());
 
         var service = new LeagueService(
             leagueRepo.Object,
             seasonRepo.Object,
             teamImport.Object,
             matchImport.Object,
-            sportsDb.Object);
+            sportsDb.Object,
+            cache);
 
         // Act
         bool result =
@@ -189,12 +194,14 @@ public sealed class LeagueServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((DateTime?)null);
 
+        var cache = new Mock<IMemoryCache>(MockBehavior.Loose);
         var service = new LeagueService(
             leagueRepo.Object,
             seasonRepo.Object,
             teamImport.Object,
             matchImport.Object,
-            sportsDb.Object);
+            sportsDb.Object,
+            cache.Object);
 
         // Act
         bool result =
@@ -260,12 +267,14 @@ public sealed class LeagueServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(DateTime.UtcNow);
 
+        var cache = new Mock<IMemoryCache>(MockBehavior.Loose);
         var service = new LeagueService(
             leagueRepo.Object,
             seasonRepo.Object,
             teamImport.Object,
             matchImport.Object,
-            sportsDb.Object);
+            sportsDb.Object,
+            cache.Object);
 
         // Act
         bool result =
