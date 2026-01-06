@@ -1,17 +1,17 @@
 import { useEffect, useState } from "react";
-import { fetchRecentMatchesByLeague } from "../services/matchService";
+import { fetchRecentMatchesBySport } from "../services/matchService";
 
-export default function useRecentMatches(leagueId: number) {
+export default function useRecentMatchesBySport(sportId: number) {
   const [matches, setMatches] = useState<Match[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (!leagueId) return;
+    if (!sportId) return;
 
     async function load() {
       setLoading(true);
       try {
-        const data = await fetchRecentMatchesByLeague(leagueId);
+        const data = await fetchRecentMatchesBySport(sportId);
         setMatches(data);
       } finally {
         setLoading(false);
@@ -19,7 +19,7 @@ export default function useRecentMatches(leagueId: number) {
     }
 
     load();
-  }, [leagueId]);
+  }, [sportId]);
 
   return {
     matches,

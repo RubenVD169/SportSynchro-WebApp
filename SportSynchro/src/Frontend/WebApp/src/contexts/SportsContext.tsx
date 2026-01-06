@@ -10,6 +10,8 @@ import {
   updateSportVisibility,
   fetchUserSports
 } from "../services/sportService";
+import { hasRole } from "../auth/hasRole";
+import { useAuth } from "react-oidc-context";
 
 interface SportsContextType {
   sports: Sport[];
@@ -21,7 +23,6 @@ interface SportsContextType {
   toggleSportVisibility: (id: number, current: boolean) => Promise<void>;
 
   refreshSports: () => Promise<void>;
-  refreshUserSports: () => Promise<void>;
 }
 
 const SportsContext = createContext<SportsContextType | undefined>(undefined);
@@ -29,52 +30,50 @@ const SportsContext = createContext<SportsContextType | undefined>(undefined);
 export function SportsProvider({ children }: { children: ReactNode }) {
   const [sports, setSports] = useState<Sport[]>([]);
   const [selectedSportId, setSelectedSportId] = useState<number | null>(null);
-
+  const { user } = useAuth();
+  const isAdmin = hasRole(user, "Admin");
   const [loadingSports, setLoadingSports] = useState(false);
 
   const refreshSports = useCallback(async () => {
-    setLoadingSports(true);
-    try {
-      const data = await fetchAdminSports();
-      setSports(data);
-    } finally {
-      setLoadingSports(false);
-    }
-  }, []);
+    if (!user) return;
 
-  const refreshUserSports = useCallback(async () => {
     setLoadingSports(true);
     try {
-      const data = await fetchUserSports();
+      const data = isAdmin
+        ? await fetchAdminSports()
+        : await fetchUserSports();
+
       setSports(data);
     } finally {
       setLoadingSports(false);
     }
-  }, []);
+  }, [isAdmin, user]);
 
   function selectSport(id: number) {
     setSelectedSportId(id);
   }
 
   async function toggleSportVisibility(id: number, current: boolean) {
-  const newValue = !current;
+    if (!hasRole(user, "Admin")) return;
 
-  setSports((prev) =>
-    prev.map((sport) =>
-      sport.id === id ? { ...sport, visible: newValue } : sport
-    )
-  );
+    const newValue = !current;
 
-  try {
-    await updateSportVisibility(id, newValue);
-  } catch {
     setSports((prev) =>
       prev.map((sport) =>
-        sport.id === id ? { ...sport, visible: current } : sport
+        sport.id === id ? { ...sport, visible: newValue } : sport
       )
     );
+
+    try {
+      await updateSportVisibility(id, newValue);
+    } catch {
+      setSports((prev) =>
+        prev.map((sport) =>
+          sport.id === id ? { ...sport, visible: current } : sport
+        )
+      );
+    }
   }
-}
 
   return (
     <SportsContext.Provider
@@ -85,7 +84,6 @@ export function SportsProvider({ children }: { children: ReactNode }) {
         selectSport,
         toggleSportVisibility,
         refreshSports,
-        refreshUserSports,
       }}
     >
       {children}

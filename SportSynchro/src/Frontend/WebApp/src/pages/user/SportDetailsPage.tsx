@@ -1,17 +1,21 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import useLeagues from "../../hooks/useLeagues";
 import LeagueCard from "../../components/sports/LeagueCard";
 import { FullscreenLoader } from "../../components/ui/FullscreenLoader";
 import { getHasLiveAccess } from "../../services/subscriptionService";
 import { IoArrowBack } from "react-icons/io5";
+import useRecentMatchesBySport from "../../hooks/useRecentMatchesBySport";
+import { useUserLeagues } from "../../hooks/useUserLeagues";
+
 
 export default function SportDetailsPage() {
     const { id } = useParams();
     const navigate = useNavigate();
     const sportId = Number(id);
 
-    const { userLeagues, loadingLeagues } = useLeagues(sportId);
+    const { leagues:userLeagues, loading: loadingLeagues } = useUserLeagues(sportId);
+    const { matches: recentMatches, loading: loadingMatches } =
+        useRecentMatchesBySport(sportId);
 
     const [hasLiveAccess, setHasLiveAccess] = useState<boolean>(false);
     const [loadingSubscription, setLoadingSubscription] = useState(true);
@@ -22,9 +26,18 @@ export default function SportDetailsPage() {
             .finally(() => setLoadingSubscription(false));
     }, []);
 
-    if (loadingLeagues || loadingSubscription) {
+    if (loadingLeagues || loadingSubscription || loadingMatches) {
         return <FullscreenLoader text="Loading Leagues ..." />;
     }
+
+    const matchesByLeagueName = recentMatches.reduce<Record<string, Match[]>>(
+        (acc, match) => {
+            acc[match.leagueName] ??= [];
+            acc[match.leagueName].push(match);
+            return acc;
+        },
+        {}
+    );
 
     return (
         <div>
@@ -45,6 +58,7 @@ export default function SportDetailsPage() {
                         key={league.id}
                         league={league}
                         hasLiveAccess={hasLiveAccess}
+                        recentMatches={matchesByLeagueName[league.name] ?? []}
                     />
                 ))}
             </div>

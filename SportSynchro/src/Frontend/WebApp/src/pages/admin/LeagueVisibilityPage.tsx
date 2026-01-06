@@ -1,11 +1,11 @@
 import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import useLeagues from "../../hooks/useLeagues";
 import LeagueCardAdmin from "../../components/sports/LeagueCardAdmin";
+import { useAdminLeagues } from "../../hooks/useAdminLeagues";
 
 export default function LeagueVisibilityPage() {
   const { sportId } = useParams<{ sportId: string }>();
-  const { leagues, loadingLeagues, toggleLeagueVisibility } = useLeagues(
+  const { leagues, loading: loadingLeagues, toggleVisibility : toggleLeagueVisibility } = useAdminLeagues(
     Number(sportId)
   );
 

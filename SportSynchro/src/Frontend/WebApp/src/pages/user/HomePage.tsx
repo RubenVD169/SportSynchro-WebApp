@@ -4,11 +4,11 @@ import { FullscreenLoader } from "../../components/ui/FullscreenLoader";
 import { useEffect } from "react";
 
 export default function HomePage() {
-  const { sports, loadingSports, refreshUserSports } = useSports();
+  const { sports, loadingSports, refreshSports } = useSports();
 
   useEffect(() => {
-    refreshUserSports();
-  }, [refreshUserSports]);
+    refreshSports();
+  }, [refreshSports]);
   
   
   if (loadingSports) {

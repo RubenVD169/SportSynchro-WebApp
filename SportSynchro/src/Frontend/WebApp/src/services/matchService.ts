@@ -1,20 +1,20 @@
 import { api } from "../lib/api";
 import axios from "axios";
 
-export async function fetchRecentMatchesByLeague(
-  leagueId: number
+export async function fetchRecentMatchesBySport(
+  sportId: number
 ): Promise<Match[]> {
   try {
-    const res = await api.get(`/match/${leagueId}`);
+    const res = await api.get(`/match/sport/${sportId}/recent`);
     return res.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response?.status === 404) {
       return [];
-    } else {
-      throw error;
     }
+    throw error;
   }
 }
+
 
 export async function fetchScheduledMatchesByLeague(
   leagueId: number
