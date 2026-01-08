@@ -28,18 +28,7 @@ export default function AdminNavbar() {
                     }
                 >
                     Sports
-                </NavLink>
-                <NavLink
-                    to="/admin/preview"
-                    className={({ isActive }) =>
-                        `uppercase tracking-wide transition-colors ${isActive
-                            ? "text-blue-400 font-semibold"
-                            : "hover:text-blue-300 text-gray-300"
-                        }`
-                    }
-                >
-                    Preview
-                </NavLink>
+                </NavLink>                
                 <LogoutNavLink />
             </nav>
         </header>

@@ -2,6 +2,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using SportSynchro.Application.Interfaces.Blob;
+using SportSynchro.Application.Interfaces.Lookups;
 using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Application.Models.Matches;
 

@@ -6,6 +6,7 @@ using Serilog;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using SportSynchro.IdentityServer.Options;
 using Microsoft.Extensions.Options;
+using Azure.Identity;
 
 namespace SportSynchro.IdentityServer;
 
@@ -13,6 +14,10 @@ internal static class HostingExtensions
 {
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
+        builder.Configuration.AddAzureKeyVault(
+    new Uri("https://sportsynchro-keyvault.vault.azure.net/"),
+    new DefaultAzureCredential()
+);
         builder.Services.AddRazorPages();
 
         builder.Services.Configure<DatabaseOptions>(
@@ -43,7 +48,7 @@ internal static class HostingExtensions
         builder.Services.AddIdentity<ApplicationUser, IdentityRole>
             (options =>
                 {
-                     options.User.RequireUniqueEmail = true;
+                    options.User.RequireUniqueEmail = true;
                 })
             .AddEntityFrameworkStores<ApplicationDbContext>()
             .AddDefaultTokenProviders();
@@ -102,15 +107,15 @@ internal static class HostingExtensions
 
         return builder.Build();
     }
-    
+
     public static WebApplication ConfigurePipeline(this WebApplication app)
-    { 
+    {
         app.UseSerilogRequestLogging();
-    
+
         if (app.Environment.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();
-        }        
+        }
 
         app.UseStaticFiles();
         app.UseRouting();

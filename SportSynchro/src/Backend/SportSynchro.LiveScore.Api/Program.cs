@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Azure.Identity;
 using Microsoft.Extensions.Options;
 using SportSynchro.LiveScore.Api.Application;
 using SportSynchro.LiveScore.Api.Endpoints;
@@ -6,6 +6,11 @@ using SportSynchro.LiveScore.Api.Infrastructure;
 using SportSynchro.LiveScore.Api.Options;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+builder.Configuration.AddAzureKeyVault(
+    new Uri("https://sportsynchro-keyvault.vault.azure.net/"),
+    new DefaultAzureCredential()
+);
 
 builder.Services.Configure<CosmosOptions>(
     builder.Configuration.GetSection(CosmosOptions.SectionName));

@@ -1,4 +1,4 @@
-namespace SportSynchro.Application.Interfaces.Services;
+namespace SportSynchro.Application.Interfaces.Lookups;
 
 public interface ISeasonResolver
 {

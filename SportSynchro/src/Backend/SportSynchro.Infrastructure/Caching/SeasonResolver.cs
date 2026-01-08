@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
+using SportSynchro.Application.Interfaces.Lookups;
 using SportSynchro.Application.Interfaces.Repositories;
-using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Domain.Entities;
 using SportSynchro.Domain.Exceptions;
 

@@ -43,7 +43,7 @@ export default function SportDetailsPage() {
         <div>
             <button
                 onClick={() => navigate("/")}
-                className="mb-4 flex items-center gap-2 text-gray-400 hover:text-white transition"
+                className="mb-4 flex items-center gap-2 text-gray-400 hover:text-white transition hover:cursor-pointer"
             >
                 <IoArrowBack className="text-lg" />
                 <span className="text-sm">Back to sports</span>
