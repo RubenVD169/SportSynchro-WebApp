@@ -74,6 +74,7 @@ public sealed class LeagueServiceTests
         var teamImport = new Mock<ITeamImportService>(MockBehavior.Strict);
         var matchImport = new Mock<IMatchImportService>(MockBehavior.Strict);
         var sportsDb = new Mock<ITheSportsDbRepository>(MockBehavior.Strict);
+        var seasonResolver = new Mock<ISeasonResolver>(MockBehavior.Strict);
         var cache = new MemoryCache(new MemoryCacheOptions());
 
         var service = new LeagueService(
@@ -82,6 +83,7 @@ public sealed class LeagueServiceTests
             teamImport.Object,
             matchImport.Object,
             sportsDb.Object,
+            seasonResolver.Object,
             cache);
 
         // Act
@@ -117,6 +119,7 @@ public sealed class LeagueServiceTests
         var teamImport = new Mock<ITeamImportService>(MockBehavior.Strict);
         var matchImport = new Mock<IMatchImportService>(MockBehavior.Strict);
         var sportsDb = new Mock<ITheSportsDbRepository>(MockBehavior.Strict);
+        var seasonResolver = new Mock<ISeasonResolver>(MockBehavior.Strict);
         var cache = new MemoryCache(new MemoryCacheOptions());
 
         var service = new LeagueService(
@@ -125,6 +128,7 @@ public sealed class LeagueServiceTests
             teamImport.Object,
             matchImport.Object,
             sportsDb.Object,
+            seasonResolver.Object,
             cache);
 
         // Act
@@ -194,6 +198,10 @@ public sealed class LeagueServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync((DateTime?)null);
 
+        var seasonResolver = new Mock<ISeasonResolver>(MockBehavior.Strict);
+        seasonResolver
+            .Setup(x => x.Invalidate(LeagueId));
+
         var cache = new Mock<IMemoryCache>(MockBehavior.Loose);
         var service = new LeagueService(
             leagueRepo.Object,
@@ -201,6 +209,7 @@ public sealed class LeagueServiceTests
             teamImport.Object,
             matchImport.Object,
             sportsDb.Object,
+            seasonResolver.Object,
             cache.Object);
 
         // Act
@@ -267,6 +276,7 @@ public sealed class LeagueServiceTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(DateTime.UtcNow);
 
+        var seasonResolver = new Mock<ISeasonResolver>(MockBehavior.Strict);
         var cache = new Mock<IMemoryCache>(MockBehavior.Loose);
         var service = new LeagueService(
             leagueRepo.Object,
@@ -274,6 +284,7 @@ public sealed class LeagueServiceTests
             teamImport.Object,
             matchImport.Object,
             sportsDb.Object,
+            seasonResolver.Object,
             cache.Object);
 
         // Act
