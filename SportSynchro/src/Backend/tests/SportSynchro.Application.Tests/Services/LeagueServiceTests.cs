@@ -199,6 +199,9 @@ public sealed class LeagueServiceTests
             .ReturnsAsync((DateTime?)null);
 
         var seasonResolver = new Mock<ISeasonResolver>(MockBehavior.Strict);
+        seasonResolver
+            .Setup(x => x.Invalidate(LeagueId));
+
         var cache = new Mock<IMemoryCache>(MockBehavior.Loose);
         var service = new LeagueService(
             leagueRepo.Object,
