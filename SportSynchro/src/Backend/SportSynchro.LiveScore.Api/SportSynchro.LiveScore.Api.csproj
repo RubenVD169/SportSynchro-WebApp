@@ -16,11 +16,7 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\SportSynchro.Infrastructure\SportSynchro.Infrastructure.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ItemGroup>
     <Reference Include="Duende.IdentityModel">
       <HintPath>..\..\..\..\..\..\.nuget\packages\duende.identitymodel\7.1.0\lib\net8.0\Duende.IdentityModel.dll</HintPath>
     </Reference>
