@@ -70,16 +70,18 @@ public class SeedData
                     throw new Exception(result.Errors.First().Description);
                 }
 
-                result = userMgr.AddClaimsAsync(alice, new Claim[]{
-                            new Claim(JwtClaimTypes.Name, "Alice Smith"),
-                            new Claim(JwtClaimTypes.GivenName, "Alice"),
-                            new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                            new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
-                        }).Result;
+                result = userMgr.AddClaimsAsync(alice, new Claim[]
+                {
+                    new Claim(JwtClaimTypes.Name, "Alice Smith"),
+                    new Claim(JwtClaimTypes.GivenName, "Alice"),
+                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
+                    new Claim(JwtClaimTypes.WebSite, "http://alice.com"),
+                }).Result;
                 if (!result.Succeeded)
                 {
                     throw new Exception(result.Errors.First().Description);
                 }
+
                 Log.Debug("alice created");
             }
             else
@@ -117,17 +119,19 @@ public class SeedData
                     throw new Exception(result.Errors.First().Description);
                 }
 
-                result = userMgr.AddClaimsAsync(bob, new Claim[]{
-                            new Claim(JwtClaimTypes.Name, "Bob Smith"),
-                            new Claim(JwtClaimTypes.GivenName, "Bob"),
-                            new Claim(JwtClaimTypes.FamilyName, "Smith"),
-                            new Claim(JwtClaimTypes.WebSite, "http://bob.com"),
-                            new Claim("location", "somewhere")
-                        }).Result;
+                result = userMgr.AddClaimsAsync(bob, new Claim[]
+                {
+                    new Claim(JwtClaimTypes.Name, "Bob Smith"),
+                    new Claim(JwtClaimTypes.GivenName, "Bob"),
+                    new Claim(JwtClaimTypes.FamilyName, "Smith"),
+                    new Claim(JwtClaimTypes.WebSite, "http://bob.com"),
+                    new Claim("location", "somewhere")
+                }).Result;
                 if (!result.Succeeded)
                 {
                     throw new Exception(result.Errors.First().Description);
                 }
+
                 Log.Debug("bob created");
             }
             else
@@ -152,59 +156,63 @@ public class SeedData
 
         }
 
-        using (var scope = app.Services
-        .GetRequiredService<IServiceScopeFactory>().CreateScope())
+        using (IServiceScope scope = app.Services
+                   .GetRequiredService<IServiceScopeFactory>()
+                   .CreateScope())
         {
-
-            var context = scope.ServiceProvider
+            ConfigurationDbContext context = scope.ServiceProvider
                 .GetRequiredService<ConfigurationDbContext>();
 
-            Log.Debug("Overwriting db clients with Config.cs");
-            context.Clients.RemoveRange(context.Clients);
-            foreach (var client in Config.Clients)
-                context.Clients.Add(client.ToEntity());
-            context.SaveChanges();
-            Log.Debug("Clients overwrite done");
+            IdentityServerConfigFactory factory = scope.ServiceProvider
+                .GetRequiredService<IdentityServerConfigFactory>();
 
-            Log.Debug("Adding IdentityResources");
-            foreach (var resource in Config.IdentityResources)
-                if (!context.IdentityResources.Any(db =>
-                        resource.Name == db.Name))
-                    context.IdentityResources.Add(resource.ToEntity());
-            context.SaveChanges();
-            Log.Debug("Adding IdentityResources done");
+            Log.Debug("Seeding IdentityServer configuration");
 
-            Log.Debug("Adding ApiScopes");
-            foreach (var resource in Config.ApiScopes)
-                if (!context.ApiScopes.Any(db =>
-                        resource.Name == db.Name))
-                    context.ApiScopes.Add(resource.ToEntity());
-            context.SaveChanges();
-            Log.Debug("Adding ApiScopes done");
-
-            Log.Debug("Adding ApiResources");
-
-            if (!context.ApiResources.Any(ar => ar.Name == "sportsynchro.api"))
+            // Clients
+            if (!context.Clients.Any())
             {
-                ApiResource apiResource = new("sportsynchro.api", "SportSynchro API")
+                foreach (Client client in factory.GetClients())
                 {
-                    Scopes =
-                    {
-                        "sportsynchro.api.read",
-                        "sportsynchro.api.write"
-                    },
-                                UserClaims =
-                    {
-                        JwtClaimTypes.Role
-                    }
-                };
+                    context.Clients.Add(client.ToEntity());
+                }
 
-                context.ApiResources.Add(apiResource.ToEntity());
                 context.SaveChanges();
+                Log.Debug("Clients seeded");
             }
 
-            Log.Debug("Adding ApiResources done");
+            // Identity Resources
+            if (!context.IdentityResources.Any())
+            {
+                foreach (IdentityResource resource in factory.GetIdentityResources())
+                {
+                    context.IdentityResources.Add(resource.ToEntity());
+                }
 
+                context.SaveChanges();
+                Log.Debug("IdentityResources seeded");
+            }
+
+            // Api Scopes
+            if (!context.ApiScopes.Any())
+            {
+                foreach (ApiScope scopeDef in factory.GetApiScopes())
+                {
+                    context.ApiScopes.Add(scopeDef.ToEntity());
+                }
+
+                context.SaveChanges();
+                Log.Debug("ApiScopes seeded");
+            }
+
+            // Api Resources
+            if (context.ApiResources.Any()) return;
+            foreach (ApiResource api in factory.GetApiResources())
+            {
+                context.ApiResources.Add(api.ToEntity());
+            }
+
+            context.SaveChanges();
+            Log.Debug("ApiResources seeded");
         }
     }
 }

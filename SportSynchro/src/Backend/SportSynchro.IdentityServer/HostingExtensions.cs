@@ -15,9 +15,9 @@ internal static class HostingExtensions
     public static WebApplication ConfigureServices(this WebApplicationBuilder builder)
     {
         builder.Configuration.AddAzureKeyVault(
-    new Uri("https://sportsynchro-keyvault.vault.azure.net/"),
-    new DefaultAzureCredential()
-);
+            new Uri("https://sportsynchro-keyvault.vault.azure.net/"),
+            new DefaultAzureCredential()
+        );
         builder.Services.AddRazorPages();
 
         builder.Services.Configure<DatabaseOptions>(
@@ -28,6 +28,11 @@ internal static class HostingExtensions
 
         builder.Services.Configure<CorsOptions>(
             builder.Configuration.GetSection(nameof(CorsOptions)));
+
+        builder.Services.Configure<IdentityServerClientsOptions>(
+            builder.Configuration.GetSection(nameof(IdentityServerClientsOptions)));
+
+        builder.Services.AddSingleton<IdentityServerConfigFactory>();
 
         builder.Services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
