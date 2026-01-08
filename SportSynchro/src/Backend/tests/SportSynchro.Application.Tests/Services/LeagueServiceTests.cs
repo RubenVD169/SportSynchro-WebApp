@@ -11,6 +11,7 @@ using Xunit;
 using SportSynchro.Application.Services;
 using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
+using SportSynchro.Application.Interfaces.Lookups;
 using SportSynchro.Application.Interfaces.External;
 using SportSynchro.Application.Models.Leagues;
 
