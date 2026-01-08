@@ -8,11 +8,6 @@ export default function AdminDashboardPage() {
             title: "Manage Sports",
             description: "Enable or disable sports and configure visibility.",
         },
-        {
-            to: "/admin/preview",
-            title: "User Preview",
-            description: "View the app as regular users see it.",
-        },
     ];
 
     return (

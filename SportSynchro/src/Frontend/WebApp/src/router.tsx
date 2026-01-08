@@ -6,7 +6,6 @@ import SportDetailsPage from "./pages/user/SportDetailsPage";
 import AdminDashboardPage from "./pages/admin/AdminDashboardPage";
 import SportsVisibilityPage from "./pages/admin/SportsVisibilityPage";
 import LeagueVisibilityPage from "./pages/admin/LeagueVisibilityPage";
-import AdminPreviewPage from "./pages/admin/AdminPreviewPage";
 import AuthCallback from "./auth/AuthCallBack";
 import { RegisterPage } from "./pages/auth/RegisterPage";
 import LogoutCallback from "./auth/LogoutCallBack";
@@ -40,7 +39,6 @@ export const router = createBrowserRouter([
       { path: "/admin", element: <AdminDashboardPage /> },
       { path: "/admin/sports", element: <SportsVisibilityPage /> },
       { path: "/admin/sports/:sportId/leagues", element: <LeagueVisibilityPage /> },
-      { path: "/admin/preview", element: <AdminPreviewPage /> },
     ],
   },
 ]);
