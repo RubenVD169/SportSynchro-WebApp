@@ -3,7 +3,7 @@ import { useLayoutEffect, useRef, useState } from "react";
 import MatchCard from "../../components/matches/MatchCard";
 import LiveMatchCard from "../../components/matches/LiveMatchCard";
 import useLeagueSchedule from "../../hooks/useLeagueSchedule";
-import { deriveMatchStatus } from "../../services/matchService";
+import { deriveMatchStatus, downloadSchedulePdf } from "../../services/matchService";
 import SimpleBar from "simplebar-react";
 import type SimpleBarCore from "simplebar-core";
 import useLiveMatches from "../../hooks/useLiveMatches";
@@ -97,7 +97,7 @@ export default function LeagueDetailsPage() {
             <div className="mb-6">
                 <button
                     onClick={() => navigate(`/sports/${sportId}`)}
-                    className="mb-4 flex items-center gap-2 text-gray-400 hover:text-white transition"
+                    className="mb-4 flex items-center gap-2 text-gray-400 hover:text-white transition hover:cursor-pointer"
                 >
                     <IoArrowBack className="text-lg" />
                     <span className="text-sm">Back to sport</span>
@@ -108,6 +108,15 @@ export default function LeagueDetailsPage() {
                 <p className="text-sm text-gray-400">
                     Matches & live results
                 </p>
+
+                <button
+                    onClick={() => downloadSchedulePdf(Number(leagueId))}
+                    className="px-4 py-2 text-sm rounded-md
+                        bg-gray-800 text-gray-200
+                        hover:bg-indigo-600 hover:text-white
+                        transition hover:cursor-pointer">
+                    Download schedule
+                </button>
             </div>
 
             <div className="flex gap-2 mb-6">

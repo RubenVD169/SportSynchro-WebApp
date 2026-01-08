@@ -15,6 +15,7 @@ public sealed class LeagueService : ILeagueService
     private readonly ITeamImportService _teamImportService;
     private readonly IMatchImportService _matchImportService;
     private readonly ITheSportsDbRepository _sportsDbRepository;
+    private readonly ISeasonResolver _seasonResolver;
     private readonly IMemoryCache _cache;
 
     private static string UserLeaguesCacheKey(int sportId)
@@ -29,6 +30,7 @@ public sealed class LeagueService : ILeagueService
         ITeamImportService teamImportService,
         IMatchImportService matchImportService,
         ITheSportsDbRepository sportsDbRepository,
+        ISeasonResolver seasonResolver,
         IMemoryCache memoryCache)
     {
         _leagueRepository = leagueRepository;
@@ -36,6 +38,7 @@ public sealed class LeagueService : ILeagueService
         _teamImportService = teamImportService;
         _matchImportService = matchImportService;
         _sportsDbRepository = sportsDbRepository;
+        _seasonResolver = seasonResolver;
         _cache = memoryCache;
     }
 
@@ -142,7 +145,8 @@ public sealed class LeagueService : ILeagueService
                 cancellationToken);
 
         Season activeSeason;
-        // Detect new season
+        bool seasonSwitched = false;
+        // Detect new season        
         if (currentSeason is null ||
             currentSeason.Key.Value != apiSeasonKey)
         {
@@ -158,6 +162,8 @@ public sealed class LeagueService : ILeagueService
                 cancellationToken);
 
             await _seasonRepository.SaveChangesAsync(cancellationToken);
+
+            seasonSwitched = true;
         }
         else
         {
@@ -184,6 +190,11 @@ public sealed class LeagueService : ILeagueService
         }
 
         await _leagueRepository.SaveChangesAsync(cancellationToken);
+
+        if (seasonSwitched)
+        {
+            _seasonResolver.Invalidate(league.Id);
+        }
 
         InvalidateLeagueCaches(league.SportId);
         return true;

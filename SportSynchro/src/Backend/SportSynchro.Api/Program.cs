@@ -9,11 +9,15 @@ using SportSynchro.Api.Auth;
 using SportSynchro.Api.Options;
 using SportSynchro.Api.Options.ExternalOptions;
 using SportSynchro.Api.Workers;
+using SportSynchro.Application.Interfaces.Blob;
 using SportSynchro.Application.Interfaces.External;
 using SportSynchro.Application.Interfaces.Lookups;
 using SportSynchro.Application.Interfaces.Repositories;
 using SportSynchro.Application.Interfaces.Services;
 using SportSynchro.Application.Services;
+using SportSynchro.Application.Services.Blob;
+using SportSynchro.Infrastructure.Blob;
+using SportSynchro.Infrastructure.Blob.Options;
 using SportSynchro.Infrastructure.Caching;
 using SportSynchro.Infrastructure.External.TheSportsDb;
 using SportSynchro.Infrastructure.Persistence;
@@ -47,6 +51,9 @@ builder.Services.Configure<LiveScoreAuthOptions>(
 
 builder.Services.Configure<LiveScoreApiOptions>(
     builder.Configuration.GetSection(LiveScoreApiOptions.SectionName));
+
+builder.Services.Configure<ScheduleBlobOptions>(
+    builder.Configuration.GetSection(ScheduleBlobOptions.SectionName));
 
 //Stripe Configuration
 builder.Services.Configure<StripeOptions>(
@@ -87,6 +94,7 @@ builder.Services.AddScoped<ISportService, SportService>();
 builder.Services.AddScoped<IMatchService, MatchService>();
 builder.Services.AddScoped<IMatchFinalizationService, MatchFinalizationService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+builder.Services.AddScoped<ISchedulePdfService, SchedulePdfService>();
 
 builder.Services.AddScoped<ILeagueRepository, LeagueRepository>();
 builder.Services.AddScoped<ITeamRepository, TeamRepository>();
@@ -95,8 +103,10 @@ builder.Services.AddScoped<ISportRepository, SportRepository>();
 builder.Services.AddScoped<ISeasonRepository, SeasonRepository>();
 builder.Services.AddScoped<ISeasonTeamRepository, SeasonTeamRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
+builder.Services.AddScoped<ISchedulePdfRepository, SchedulePdfRepository>();
 
 builder.Services.AddScoped<ILeagueExternalIdResolver, LeagueExternalIdResolver>();
+builder.Services.AddScoped<ISeasonResolver, SeasonResolver>();
 
 // Add authentication and authorization
 IdentityServerOptions authOptions = builder.Configuration

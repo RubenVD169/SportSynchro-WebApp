@@ -44,6 +44,28 @@ export async function fetchLiveMatches(leagueId: number): Promise<LiveMatch[]> {
   }
 }
 
+export async function downloadSchedulePdf(leagueId: number) {
+  const response = await api.get(`/schedule/${leagueId}`, {
+    responseType: "blob",
+  });
+
+  const blob = new Blob([response.data], {
+    type: "application/pdf",
+  });
+
+  const url = window.URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `schedule_${leagueId}.pdf`;
+  document.body.appendChild(a);
+  a.click();
+
+  a.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+
 type DerivedMatchStatus = "not-started" | "live" | "finished";
 
 export function deriveMatchStatus(
